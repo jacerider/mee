@@ -1,0 +1,11 @@
+name        = MEE: Markdown Epic Editor
+description = A markdown editor for Drupal using EpicEditor
+package     = Avencrest
+version     = VERSION
+core        = 7.x
+
+dependencies[] = libraries
+dependencies[] = ctools
+
+; Our plugins interfaces and abstract implementations.
+files[] = plugins/buttons/abstract.class.php

@@ -1,0 +1,177 @@
+@include font-face("mee", font-files("mee.ttf", "mee.otf", "mee.eot", "mee.svg"));
+
+.mee-wrapper{
+  .mee-textarea-wrapper{
+    .mee-textarea{
+      border:0;
+      background:rgb(41,41,41);
+      font-family:monospace;
+      font-size:14px;
+      color:#ddd;
+      line-height:1.35em;
+      margin-bottom:0;
+      resize:none;
+      vertical-align: top;
+      -webkit-transition: height 0.2s;
+      -moz-transition: height 0.2s;
+      transition: height 0.2s;
+    }
+  }
+  .mee-toolbar{
+    margin:0 0 5px;
+    label{
+      font-size:9.5px;
+      line-height:normal;
+      text-shadow: 0 1px 0 #fff;
+      text-transform: uppercase;
+      font-weight: bold;
+      margin:0;
+      padding:0 0 0 5px;
+      color:#9c9c9c;
+    }
+    .mee-group{
+      display:inline-block;
+    }
+    .mee-group + .mee-group{
+      margin-left:5px;
+    }
+  }
+  .mee-clear{
+    clear:both;
+  }
+  .mee-preview{
+    display:block;
+    width:100%;
+    border:none;
+    @include border-radius(5px);
+    -webkit-transition: height 0.2s;
+    -moz-transition: height 0.2s;
+    transition: height 0.2s;
+  }
+}
+
+/**
+ * Iframe
+ */
+.mee-iframe{
+  margin:0;
+  padding:0;
+  background:#fff;
+  #mee-iframe-content{
+    padding:10px;
+  }
+}
+
+/**
+ * Views
+ */
+.mee-view-split{
+  .mee-textarea-wrapper{
+    width: 49%;
+    float:left;
+  }
+  .mee-preview-wrapper{
+    width:50%;
+    padding-left:1%;
+    float:left;
+  }
+}
+
+/**
+ * Fullscreen
+ */
+:-webkit-full-screen,
+:-moz-full-screen {
+  background: #292929;
+}
+
+.mee-full{
+  background: #d0d0d0;
+  position:relative;
+
+  .mee-wrapper-inner{
+    position:absolute;
+    top:10px;
+    left:10px;
+    right:10px;
+    bottom:10px;
+    margin:0;
+
+    .mee-textarea-wrapper{
+      position:absolute;
+      top:55px;
+      left:5px;
+      bottom:5px;
+      margin:0;
+      padding:0;
+      width:50%;
+
+      .mee-textarea{
+        margin:0;
+        padding:0;
+        width:100% !important;
+        height:100% !important;
+        resize: vertical !important;
+        overflow: auto !important;
+        @include border-radius(0);
+      }
+    }
+
+    .mee-preview-wrapper{
+      position:absolute;
+      top:55px;
+      right:5px;
+      bottom:5px;
+      margin:0;
+      padding:0;
+      width:50%;
+
+      .mee-preview{
+        width:100% !important;
+        height:100% !important;
+        @include border-radius(0);
+      }
+    }
+  }
+}
+
+/**
+ * Icons
+ */
+[class^="icon-"]:before,
+[class*=" icon-"]:before {
+  font-family: 'mee';
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: 0.2em;
+  text-align: center;
+/* opacity .8 */
+/* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+/* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+/* Animation center compensation - magrins should be symmetric */
+/* remove if not needed */
+  margin-left: 0.2em;
+/* you can be more comfortable with increased icons size */
+/* font-size: 120%; */
+/* Uncomment for 3D effect */
+/* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+
+.icon-minus:before { content: '\2d'; } /* '-' */
+.icon-quote:before { content: '\e054'; } /* '' */
+.icon-italic:before { content: '\e086'; } /* '' */
+.icon-bold:before { content: '\e0ce'; } /* '' */
+.icon-align-right:before { content: '\e0d6'; } /* '' */
+.icon-align-left:before { content: '\e0d7'; } /* '' */
+.icon-align-center:before { content: '\e0d9'; } /* '' */
+.icon-code:before { content: '\e714'; } /* '' */
+.icon-list:before { content: '\e782'; } /* '' */
+.icon-list-numbered:before { content: '\e7ad'; } /* '' */
+.icon-link:before { content: '🔗'; } /* '\1f517' */
