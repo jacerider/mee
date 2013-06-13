@@ -112,6 +112,12 @@ function mee_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
       '#description' => t('The display style of the editor.'),
     );
 
+    $mee['settings']['labels_show'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show Labels'),
+      '#default_value' => isset($default_values['labels_show']) ? $default_values['labels_show'] : 0,
+    );
+
     $mee['settings']['buttons'] = array(
       '#type' => 'container',
       '#tree' => TRUE,

@@ -168,7 +168,8 @@ function mee_process_widget(&$element) {
 
   $settings = array(
     'selector' => '#'.$id,
-    'autogrow' => true,
+    'autogrow' => $config['settings']['autogrow'],
+    'labels_show' => $config['settings']['labels_show'],
     'view' => $config['settings']['view']
   );
   if(!empty($config['settings']['buttons'])){
