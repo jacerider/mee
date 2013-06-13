@@ -6,12 +6,14 @@ mee.count = 0;
 // Preview update delay
 mee.previewUpdateDelay = 1000;
 // Animation speed
-mee.transitionSpeed = 800;
+mee.transitionSpeed = 400;
 // Keeps fullscreen boolean
 mee.fullscreenActive = false;
 // Wrapper object for mee
 mee.wrapper = {};
 // Wrapper object for editor
+mee.editorWrapper = {};
+// Wrapper inner object for editor
 mee.editorWrapper = {};
 // Editor object
 mee.editor = {};
@@ -24,7 +26,8 @@ mee.preview = {};
 // Default settings
 mee.settings = {
   view          : 'default',  // The display style for the editor
-  autogrow      : true        // Should we autogrow the textarea
+  autogrow      : true,       // Should we autogrow the textarea
+  labels_show   : true        // Show button labels in toolbar
 };
 mee.settings.buttons = {
   bold          : {label:'<i class="icon-bold"></i>',tip:'Bold - Ctrl+B',key:'ctrl+b',group:'font'},
@@ -91,12 +94,13 @@ methods.init = function ( options ) {
 
 methods.editorBuild = function () {
   mee.count++;
-  mee.editor.bind('keyup', methods.editorChange).data('mee', mee.settings).wrap('<div id="mee-wrapper-' + mee.count + '" class="mee-wrapper mee-view-' + mee.settings.view + '"><div class="mee-border well well-small"><div class="mee-inner"><div class="mee-editor"><div class="mee-textarea-wrapper"></div></div></div></div></div>');
+  mee.editor.bind('keyup', methods.editorChange).data('mee', mee.settings).wrap('<div id="mee-wrapper-' + mee.count + '" class="mee-wrapper mee-view-' + mee.settings.view + '"><div class="mee-wrapper-inner"><div class="mee-border well well-small"><div class="mee-inner"><div class="mee-editor"><div class="mee-editor-inner"><div class="mee-textarea-wrapper"></div></div></div></div></div></div></div>');
   var callback = function(){
     methods.previewResize(parseInt(this.style.height.replace('px','')));
   }
   if(mee.settings.autogrow == true) mee.editor.css({overflow:'hidden'}).autosize({append:"\n",callback:callback});
   mee.editorWrapper = mee.editor.closest('.mee-editor');
+  mee.editorWrapperInner = mee.editor.closest('.mee-editor-inner');
   mee.wrapper = mee.editor.closest('.mee-inner');
 
   mee.editor.bind('keyup', 'shift+return', function( e ){
@@ -135,8 +139,20 @@ methods.editorChange = function ( e ) {
  *
  * @author JaceRider
  */
-methods.editorShow = function ( ) {
-  mee.editorWrapper.show();
+methods.editorShow = function ( animated, callback  ) {
+  if(!animated){
+    mee.editorWrapper.show();
+    return;
+  }
+  callback = jQuery.isFunction(callback) ? callback : function(){};
+  var editorHeight = mee.editorWrapper.css({height:''}).outerHeight();
+  // var wrapperHeight = mee.wrapper.height();
+  mee.wrapper.animate({height:editorHeight}, mee.transitionSpeed);
+  mee.editorWrapper.animate({opacity:1, marginTop:0}, mee.transitionSpeed, function(){
+    mee.wrapper.removeAttr('style');
+    mee.editorWrapper.removeAttr('style');
+    callback( );
+  });
 }
 
 /**
@@ -144,12 +160,15 @@ methods.editorShow = function ( ) {
  *
  * @author JaceRider
  */
-methods.editorHide = function ( callback ) {
-  //mee.editorWrapper.hide();
+methods.editorHide = function ( animated, callback ) {
+  if(!animated){
+    mee.editorWrapper.hide();
+    return;
+  }
   callback = jQuery.isFunction(callback) ? callback : function(){};
-  //var wrapper = mee.editorWrapper;
-  var editorHeight = mee.editorWrapper.height();
-  var wrapperHeight = mee.wrapper.height();
+  var editorHeight = mee.editorWrapper.outerHeight();
+  console.log(editorHeight);
+  var wrapperHeight = mee.wrapper.outerHeight();
   mee.wrapper.css({overflow:'hidden',height:wrapperHeight});
   mee.editorWrapper.css({height:editorHeight}).animate({opacity:0, marginTop:editorHeight * -1}, mee.transitionSpeed, callback);
 }
@@ -160,7 +179,7 @@ methods.previewBuild = function () {
   var style = 'display:none;';
   if(mee.settings.autogrow == true) style += 'overflow:hidden;';
   mee.previewIframe = $('<iframe src="'+url+'" class="mee-preview" style="'+style+'">');
-  mee.previewIframe.appendTo(mee.editorWrapper).after('<div class="mee-clear" />');
+  mee.previewIframe.appendTo(mee.editorWrapperInner).after('<div class="mee-clear" />');
   mee.previewIframe.wrap('<div class="mee-preview-wrapper" />');
   methods.previewWatch();
 }
@@ -205,8 +224,10 @@ methods.markdownConvert = function ( text ) {
 methods.toolbarBuild = function () {
 
   // Create the toolbar and add it to the DOM
-  mee.toolbar = $('<div class="mee-toolbar btn-toolbar clearfix" />');
-  mee.toolbar.prependTo(mee.editorWrapper);
+  var classes = '';
+  if(mee.settings.labels_show != true) classes += ' labels-hide';
+  mee.toolbar = $('<div class="mee-toolbar btn-toolbar clearfix' + classes + '" />');
+  mee.toolbar.prependTo(mee.editorWrapperInner);
   //mee.editorWrapper.wrap('<div class="well well-small"></div>');
 
   // Don't do anything else if we don't have any buttons.
@@ -235,7 +256,7 @@ methods.toolbarBuildGroups = function () {
     var settings = mee.settings.groups[i];
     settings.label = settings.label ? settings.label : '&nbsp;';
     var label = '<label>' + settings.label + '</label>';
-    groups[i] = $(groupMarkup).appendTo(mee.toolbar).wrap('<div class="mee-group pull-'+settings.pos+'" />').before(label);
+    groups[i] = $(groupMarkup).appendTo(mee.toolbar).wrap('<div class="mee-group pull-' + settings.pos + '" />').before(label);
   }
   if($.isEmptyObject(groups)) groups[0] = $(groupMarkup).appendTo(mee.toolbar);
   return groups;
@@ -256,7 +277,7 @@ methods.toolbarBuildButtons = function ( groups ) {
 
     // If no group set or does not exist, reset to 0
     var group = settings.group ? ( groups[settings.group] ? settings.group : 0 ) : 0;
-    var button = $('<button class="btn btn-mini" title="' + settings.tip + '" id="mee-' + i + '">' + settings.label + '</button>').data('mee',settings).appendTo(groups[group]);
+    var button = $('<button class="btn btn-mini btn-inverse" title="' + settings.tip + '" id="mee-' + i + '">' + settings.label + '</button>').data('mee',settings).appendTo(groups[group]);
     if(jQuery.isFunction( button.tooltip ) && settings.tip){
       button.tooltip({placement:'top',delay:500,container:'body'});
     }
@@ -332,7 +353,7 @@ methods.fullscreenCancel = function () {
 }
 
 methods.fullscreenToggle = function ( e ) {
-  var element = mee.editorWrapper.closest('.mee-wrapper');
+  var element = mee.editorWrapperInner.closest('.mee-wrapper');
   if(element.hasClass('mee-full')){
     mee.fullscreenActive = false;
     element.removeClass('mee-full');
@@ -668,7 +689,6 @@ meeCommands.linkOrImage = function ( ss, isImage ) {
       .appendTo($body);
 
     widget.onShowCallback = function( widget ){
-      console.log(widget);
       widget.$input.focus();
     }
 
@@ -1063,7 +1083,7 @@ meeCommands.code = function ( ss ) {
 
 
 meeCommands.fullscreen = function ( ss ) {
-  var element = document.getElementById( mee.editorWrapper.closest('.mee-wrapper').attr('id') );
+  var element = document.getElementById( mee.editorWrapperInner.closest('.mee-wrapper').attr('id') );
   methods.fullscreenLaunch( element );
 }
 
@@ -1175,7 +1195,7 @@ function meeWidget( options ){
   this.settings = $.extend( {
     title       : null
   }, options);
-  // Built the modal
+  // Built the widget
   this.build();
   return this;
 }
@@ -1183,11 +1203,12 @@ function meeWidget( options ){
 meeWidget.prototype.build = function () {
   var self = this;
   this.$widget = $('<div class="mee-widget"></div>').appendTo(mee.wrapper).hide();
+  this.$inner = $('<div class="mee-widget-inner"></div>').appendTo(this.$widget);
   var header = '';
   header += '<div class="mee-widget-header">';
   header += '  <h3>' + this.settings.title + '</h3>';
   header += '</div>';
-  this.$header = $(header).appendTo(this.$widget);
+  this.$header = $(header).appendTo(this.$inner);
   this.$close = $('<a class="close" data-dismiss="widget">&times;</a>').prependTo(this.$header).click(function( e ){
     e.preventDefault();
     self.hide();
@@ -1197,8 +1218,8 @@ meeWidget.prototype.build = function () {
       self.hide();
     }
   });
-  this.$body = $('<div class="mee-widget-body" />').appendTo(this.$widget);
-  this.$footer = $('<div class="mee-widget-footer" />').appendTo(this.$widget);
+  this.$body = $('<div class="mee-widget-body" />').appendTo(this.$inner);
+  this.$footer = $('<div class="mee-widget-footer" />').appendTo(this.$inner);
 }
 
 /**
@@ -1273,34 +1294,42 @@ meeWidget.prototype.show = function ( callback ) {
   var self = this;
 
   // Hide editor
-  methods.editorHide(function(){
-
-    self.$widget
-      .data('meeWidget', self)
-      .show();
-
-    // Trigger callback if set
-    if(jQuery.isFunction( self.onShowCallback )) self.onShowCallback( self );
+  methods.editorHide(true, function(){
 
   });
+
+
+    var height = self.$widget.outerHeight();
+    mee.wrapper.animate({height:height}, mee.transitionSpeed, function(){
+
+      // Trigger callback if set
+      if(jQuery.isFunction( self.onShowCallback )) self.onShowCallback( self );
+
+    });
+  self.$widget
+    .data('meeWidget', self)
+    .show().css({opacity:0}).animate({opacity:1}, mee.transitionSpeed);
+
 }
 
 meeWidget.prototype.hide = function () {
   var self = this;
 
   // Show editor
-  methods.editorShow();
-  // Add delay to allow for editor to show and register as being shown
-  setTimeout(function(){
+  methods.editorShow(true, function(){
+
     // unbind enter key
     $(document).unbind("keypress.key13");
     // unbind escape key
     $(document).unbind("keypress.key13");
 
+    // Remove the widget
+    self.$widget.remove();
+
     // Trigger callback if set
     if(jQuery.isFunction( self.onHideCallback )) self.onHideCallback( this );
-    self.$widget.remove();
-  },10);
+
+  });
 }
 
 meeWidget.prototype.onShowCallback = function(){}
