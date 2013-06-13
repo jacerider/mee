@@ -3,7 +3,7 @@
 class Mee_ButtonsHandler_Blockquote extends Mee_ButtonsHandler_Abstract {
 
   public function getIcon(){
-    return 'quote';
+    return 'mee-quote';
   }
 
   public function getTip(){

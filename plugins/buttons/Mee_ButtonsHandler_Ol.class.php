@@ -3,7 +3,7 @@
 class Mee_ButtonsHandler_Ol extends Mee_ButtonsHandler_Abstract {
 
   public function getIcon(){
-    return 'list-numbered';
+    return 'mee-ol';
   }
 
   public function getTip(){

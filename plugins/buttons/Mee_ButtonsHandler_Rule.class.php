@@ -3,7 +3,7 @@
 class Mee_ButtonsHandler_Rule extends Mee_ButtonsHandler_Abstract {
 
   public function getIcon(){
-    return 'minus';
+    return 'mee-rule';
   }
 
   public function getTip(){

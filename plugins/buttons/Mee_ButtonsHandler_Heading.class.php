@@ -2,6 +2,10 @@
 
 class Mee_ButtonsHandler_Heading extends Mee_ButtonsHandler_Abstract {
 
+  public function getIcon(){
+    return 'mee-heading';
+  }
+
   public function getTip(){
     return 'Heading - Ctrl+H';
   }

@@ -2,9 +2,9 @@
 
 class Mee_ButtonsHandler_Image extends Mee_ButtonsHandler_Abstract {
 
-  // public function getIcon(){
-  //   return 'link';
-  // }
+  public function getIcon(){
+    return 'mee-image';
+  }
 
   public function getTip(){
     return 'Image - Ctrl+G';

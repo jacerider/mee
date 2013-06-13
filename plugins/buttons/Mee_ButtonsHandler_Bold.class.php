@@ -3,7 +3,7 @@
 class Mee_ButtonsHandler_Bold extends Mee_ButtonsHandler_Abstract {
 
   public function getIcon(){
-    return 'bold';
+    return 'mee-bold';
   }
 
   public function getTip(){

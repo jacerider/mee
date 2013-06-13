@@ -3,7 +3,7 @@
 class Mee_ButtonsHandler_Italic extends Mee_ButtonsHandler_Abstract {
 
   public function getIcon(){
-    return 'italic';
+    return 'mee-italic';
   }
 
   public function getTip(){

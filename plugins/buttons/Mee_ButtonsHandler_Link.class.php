@@ -3,7 +3,7 @@
 class Mee_ButtonsHandler_Link extends Mee_ButtonsHandler_Abstract {
 
   public function getIcon(){
-    return 'link';
+    return 'mee-link';
   }
 
   public function getTip(){

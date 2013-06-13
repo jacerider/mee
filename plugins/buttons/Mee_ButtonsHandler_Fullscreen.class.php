@@ -2,9 +2,9 @@
 
 class Mee_ButtonsHandler_Fullscreen extends Mee_ButtonsHandler_Abstract {
 
-  // public function getIcon(){
-  //   return 'italic';
-  // }
+  public function getIcon(){
+    return 'mee-fullscreen';
+  }
 
   public function getTip(){
     return 'Fullscreen Mode - Ctrl+F';
