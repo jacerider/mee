@@ -19,6 +19,10 @@
   }
   .mee-toolbar{
     margin:0 0 5px;
+    padding:8px;
+    background:#3f3f3f;
+    @include border-radius(5px);
+
     label{
       font-size:9.5px;
       line-height:normal;
@@ -28,6 +32,13 @@
       margin:0;
       padding:0 0 0 5px;
       color:#9c9c9c;
+    }
+    label{
+      color:#bfbfbf;
+      text-shadow: 0 -1px 0 #000;
+    }
+    &.labels-hide label{
+      display:none;
     }
     .mee-group{
       display:inline-block;
@@ -47,6 +58,12 @@
     -webkit-transition: height 0.2s;
     -moz-transition: height 0.2s;
     transition: height 0.2s;
+  }
+  .mee-border{
+    padding:0;
+  }
+  .mee-editor-inner{
+    padding:8px;
   }
 }
 
@@ -78,6 +95,45 @@
 }
 
 /**
+ * Widget
+ */
+// .mee-widget{
+//   position:fixed;
+//   top:0;
+//   bottom:0;
+//   left:0;
+//   right:0;
+//   background:rgba(245,245,245,.95);
+
+//   .mee-widget-inner{
+//     width:600px;
+//     margin:0 auto;
+//     padding:60px 0;
+//   }
+// }
+.mee-widget{
+  padding: 8px;
+  position: relative;
+  z-index: 1000;
+
+  .mee-widget-inner{
+    background:#3f3f3f;
+    @include border-radius(5px);
+    padding:8px;
+    color:#fff;
+  }
+
+  .mee-widget-header{
+    h3{
+      color:#F4F4F4;
+      margin:0;
+      font-size:24px;
+      line-height:24px;
+    }
+  }
+}
+
+/**
  * Fullscreen
  */
 :-webkit-full-screen,
@@ -94,17 +150,25 @@
     top:10px;
     left:10px;
     right:10px;
-    bottom:10px;
+    bottom:-10px;
     margin:0;
+
+    .mee-border{
+      position:absolute;
+      top:0;
+      right:0;
+      bottom:0;
+      left:0;
+    }
 
     .mee-textarea-wrapper{
       position:absolute;
       top:55px;
-      left:5px;
-      bottom:5px;
+      left:8px;
+      bottom:8px;
       margin:0;
       padding:0;
-      width:50%;
+      width:49%;
 
       .mee-textarea{
         margin:0;
@@ -113,23 +177,24 @@
         height:100% !important;
         resize: vertical !important;
         overflow: auto !important;
-        @include border-radius(0);
+        // @include border-radius(0);
       }
     }
 
     .mee-preview-wrapper{
       position:absolute;
       top:55px;
-      right:5px;
-      bottom:5px;
+      right:8px;
+      bottom:8px;
       margin:0;
       padding:0;
-      width:50%;
+      width:49%;
 
       .mee-preview{
+        margin:0;
         width:100% !important;
         height:100% !important;
-        @include border-radius(0);
+        // @include border-radius(0);
       }
     }
   }
@@ -138,40 +203,45 @@
 /**
  * Icons
  */
-[class^="icon-"]:before,
-[class*=" icon-"]:before {
-  font-family: 'mee';
+ [class^="icon-"]:before, [class*=" icon-"]:before {
+  font-family: "mee";
   font-style: normal;
   font-weight: normal;
   speak: none;
+
   display: inline-block;
   text-decoration: inherit;
   width: 1em;
-  margin-right: 0.2em;
+  margin-right: .2em;
   text-align: center;
-/* opacity .8 */
-/* For safety - reset parent styles, that can break glyph codes*/
+  /* opacity: .8; */
+
+  /* For safety - reset parent styles, that can break glyph codes*/
   font-variant: normal;
   text-transform: none;
-/* fix buttons height, for twitter bootstrap */
+
+  /* fix buttons height, for twitter bootstrap */
   line-height: 1em;
-/* Animation center compensation - magrins should be symmetric */
-/* remove if not needed */
-  margin-left: 0.2em;
-/* you can be more comfortable with increased icons size */
-/* font-size: 120%; */
-/* Uncomment for 3D effect */
-/* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+
+  /* Animation center compensation - margins should be symmetric */
+  /* remove if not needed */
+  margin-left: .2em;
+
+  /* you can be more comfortable with increased icons size */
+  /* font-size: 120%; */
+
+  /* Uncomment for 3D effect */
+  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
 
-.icon-minus:before { content: '\2d'; } /* '-' */
-.icon-quote:before { content: '\e054'; } /* '' */
-.icon-italic:before { content: '\e086'; } /* '' */
-.icon-bold:before { content: '\e0ce'; } /* '' */
-.icon-align-right:before { content: '\e0d6'; } /* '' */
-.icon-align-left:before { content: '\e0d7'; } /* '' */
-.icon-align-center:before { content: '\e0d9'; } /* '' */
-.icon-code:before { content: '\e714'; } /* '' */
-.icon-list:before { content: '\e782'; } /* '' */
-.icon-list-numbered:before { content: '\e7ad'; } /* '' */
-.icon-link:before { content: '🔗'; } /* '\1f517' */
+.icon-mee-quote:before { content: '\e806'; } /* '' */
+.icon-mee-rule:before { content: '\e808'; } /* '' */
+.icon-mee-image:before { content: '\e804'; } /* '' */
+.icon-mee-bold:before { content: '\e800'; } /* '' */
+.icon-mee-italic:before { content: '\e801'; } /* '' */
+.icon-mee-heading:before { content: '\e80a'; } /* '' */
+.icon-mee-fullscreen:before { content: '\e809'; } /* '' */
+.icon-mee-ul:before { content: '\e802'; } /* '' */
+.icon-mee-ol:before { content: '\e803'; } /* '' */
+.icon-mee-code:before { content: '\e807'; } /* '' */
+.icon-mee-link:before { content: '\e805'; } /* '' */
