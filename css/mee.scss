@@ -15,6 +15,8 @@
       -webkit-transition: height 0.2s;
       -moz-transition: height 0.2s;
       transition: height 0.2s;
+      width:100%;
+      padding:10px;
     }
   }
   .mee-toolbar{
@@ -73,8 +75,8 @@
 .mee-iframe{
   margin:0;
   padding:0;
-  background:#fff;
-  #mee-iframe-content{
+  //background:#fff;
+  .mee-iframe-content{
     padding:10px;
   }
 }
@@ -84,13 +86,16 @@
  */
 .mee-view-split{
   .mee-textarea-wrapper{
-    width: 49%;
+    width: 50%;
     float:left;
   }
   .mee-preview-wrapper{
     width:50%;
-    padding-left:1%;
     float:left;
+
+    iframe{
+      margin-left:5px;
+    }
   }
 }
 
@@ -161,18 +166,26 @@
       left:0;
     }
 
+    .mee-editor-inner{
+      position:absolute;
+      top:8px;
+      left:8px;
+      right:8px;
+      bottom:8px;
+      padding:0;
+    }
+
     .mee-textarea-wrapper{
       position:absolute;
-      top:55px;
-      left:8px;
-      bottom:8px;
+      top:45px;
+      left:0;
+      bottom:0;
       margin:0;
       padding:0;
-      width:49%;
+      width:50%;
 
       .mee-textarea{
         margin:0;
-        padding:0;
         width:100% !important;
         height:100% !important;
         resize: vertical !important;
@@ -183,19 +196,71 @@
 
     .mee-preview-wrapper{
       position:absolute;
-      top:55px;
-      right:8px;
-      bottom:8px;
+      top:45px;
+      right:0;
+      bottom:0;
       margin:0;
       padding:0;
-      width:49%;
+      width:50%;
 
       .mee-preview{
-        margin:0;
+        margin:0 0 0 8px;
         width:100% !important;
         height:100% !important;
         // @include border-radius(0);
       }
+    }
+  }
+}
+
+/**
+ * Admin
+ */
+#mee-toolbar-editor{
+
+  label span{
+    text-transform: none;
+    font-weight:normal;
+  }
+
+  .mee-sortable{
+    min-width: 28px;
+    background:#5d5d5d;
+    margin:0;
+    min-height: 22px;
+    @include border-radius(3px);
+  }
+
+  .mee-placeholder{
+    @extend .btn;
+    @extend .btn-mini;
+    width:15px;
+    height:19px;
+  }
+
+  .form-item{
+    margin:0;
+    padding:0;
+  }
+
+  .form-text{
+    margin:0;
+    padding:0 0 2px 5px;
+    border:none;
+    width:80px;
+    font-size: 9.5px;
+    line-height: 9.5px;
+    font-weight:bold;
+    text-shadow: 0 -1px 0 #000000;
+    background:transparent;
+    color:#B6BFBF;
+    text-transform: uppercase;
+    height:9.5px;
+    overflow:hidden;
+    display:block;
+
+    &:focus{
+      @include box-shadow(none);
     }
   }
 }
