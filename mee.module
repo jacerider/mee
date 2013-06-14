@@ -129,6 +129,7 @@ function mee_process_widget(&$element) {
   );
 
   $groups_found = array();
+  // Buttons
   if(!empty($config['settings']['toolbar']['buttons'])){
     uasort($config['settings']['toolbar']['buttons'], 'drupal_sort_weight');
     $plugins = mee_get_plugin('buttons');
@@ -144,7 +145,7 @@ function mee_process_widget(&$element) {
       $groups_found[$c['group']] = 1;
     }
   }
-
+  // Groups
   if(!empty($config['settings']['toolbar']['groups'])){
     foreach($config['settings']['toolbar']['groups'] as $name => $label){
       if(empty($groups_found[$name])) continue;
