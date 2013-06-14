@@ -34,105 +34,16 @@ function mee_theme() {
     'mee_config_form_buttons' => array(
       'render element' => 'element'
     ),
+    'mee_config_form_toolbar' => array(
+      'render element' => 'element',
+      'file' => 'mee.field.inc',
+    ),
   );
 }
 
 function mee_field_widget_form_alter(&$element, &$form_state, $context){
   $field = $context['field'];
   if(in_array($field['type'], mee_allowed_field_types())){
-
-    /**
-     * Buttons
-     */
-
-    // $settings['buttons']['bold'] = array(
-    //   'label' => '<i class="icon-bold"></i>',
-    //   'tip' => t('Bold - Ctrl+B'),
-    //   'key' => 'ctrl+b',
-    //   'group' => 'font'
-    // );
-
-    // $settings['buttons']['italic'] = array(
-    //   'label' => '<i class="icon-italic"></i>',
-    //   'tip' => t('Italic - Ctrl+I'),
-    //   'key' => 'ctrl+i',
-    //   'group' => 'font'
-    // );
-
-    // $settings['buttons']['heading'] = array(
-    //   'label' => 'Heading',
-    //   'type' => 'select',
-    //   'options' => array(
-    //     0 => 'Normal',
-    //     2 => 'Heading 2'
-    //   ),
-    //   'tip' => t('Heading - Ctrl+H'),
-    //   'key' => 'ctrl+h',
-    //   'group' => 'font'
-    // );
-
-    // $settings['buttons']['ul'] = array(
-    //   'label' => '<i class="icon-list"></i>',
-    //   'tip' => t('Bulleted List - Ctrl+U'),
-    //   'key' => 'ctrl+u',
-    //   'group' => 'list'
-    // );
-
-    // $settings['buttons']['ol'] = array(
-    //   'label' => '<i class="icon-list-numbered"></i>',
-    //   'tip' => t('Numbered List - Ctrl+O'),
-    //   'key' => 'ctrl+o',
-    //   'group' => 'list'
-    // );
-
-    // $settings['buttons']['link'] = array(
-    //   'label' => '<i class="icon-link"></i>',
-    //   'tip' => t('Link - Ctrl+L'),
-    //   'key' => 'ctrl+l',
-    //   'group' => 'other'
-    // );
-
-    // $settings['buttons']['blockquote'] = array(
-    //   'label' => '<i class="icon-quote"></i>',
-    //   'tip' => t('Blockquote - Ctrl+Q'),
-    //   'group' => 'other'
-    // );
-
-    // $settings['buttons']['rule'] = array(
-    //   'label' => '<i class="icon-minus"></i>',
-    //   'tip' => t('Horizontal Rule - Ctrl+H'),
-    //   'key' => 'ctrl+h',
-    //   'group' => 'other'
-    // );
-
-    // $settings['buttons']['code'] = array(
-    //   'label' => '<i class="icon-code"></i>',
-    //   'tip' => t('Code - Ctrl+K'),
-    //   'key' => 'ctrl+k',
-    //   'group' => 'other'
-    // );
-
-    /**
-     * Groups
-     */
-
-    // $settings['groups']['font'] = array(
-    //   'label' => 'Font Style',
-    //   'weight' => 1
-    // );
-
-    // $settings['groups']['list'] = array(
-    //   'label' => 'List',
-    //   'weight' => 2
-    // );
-
-    // $settings['groups']['other'] = array(
-    //   'label' => 'Other',
-    //   'weight' => 3
-    // );
-
-    // // Sort groups
-    // uasort($settings['groups'], 'drupal_sort_weight');
 
   }
 }
@@ -146,6 +57,41 @@ function mee_element_info_alter(&$types) {
       $types[$element]['#process'][] = 'mee_process_widget';
     }
   }
+  if(isset($types['text_format'])){
+      $types['text_format']['#process'][] = 'mee_process_text_format';
+  }
+}
+
+/**
+ * Process callback.
+ */
+function mee_process_text_format(&$element) {
+  if (!isset($element['#entity_type'])) {
+    return $element;
+  }
+
+  $field = field_info_field($element['#field_name']);
+  $instance = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
+
+  // Mee is not enabled on this field
+  if(empty($instance['settings']['mee'])) return $element;
+
+  $config = $instance['settings']['mee'];
+
+  // Mee is not enabled on this field
+  if(empty($config['enable']) || empty($config['settings']['text_format'])) return $element;
+
+  $text_format = $config['settings']['text_format'];
+
+  $element['format']['#type'] = 'container';
+  $element['format']['guidelines']['#access'] = FALSE;
+  $element['format']['help']['#access'] = FALSE;
+  $element['format']['format'] = array(
+    '#type' => 'hidden',
+    '#value' => $text_format,
+  );
+
+  return $element;
 }
 
 /**
@@ -162,9 +108,18 @@ function mee_process_widget(&$element) {
     $id = str_replace('_','-','mee-'.$element['#entity_type'].'-'.$element['#bundle'].'-'.$element['#field_name']);
   }
 
+  $id .= '-'.rand(100000,999999);
+
   $field = field_info_field($element['#field_name']);
   $instance = field_info_instance($element['#entity_type'], $element['#field_name'], $element['#bundle']);
+
+  // Mee is not enabled on this field
+  if(empty($instance['settings']['mee'])) return $element;
+
   $config = $instance['settings']['mee'];
+
+  // Mee is not enabled on this field
+  if(empty($config['enable'])) return $element;
 
   $settings = array(
     'selector' => '#'.$id,
@@ -172,34 +127,37 @@ function mee_process_widget(&$element) {
     'labels_show' => $config['settings']['labels_show'],
     'view' => $config['settings']['view']
   );
-  if(!empty($config['settings']['buttons'])){
+
+  $groups_found = array();
+  if(!empty($config['settings']['toolbar']['buttons'])){
+    uasort($config['settings']['toolbar']['buttons'], 'drupal_sort_weight');
+    dsm($config['settings']['toolbar']);
     $plugins = mee_get_plugin('buttons');
-    uasort($config['settings']['buttons'], 'drupal_sort_weight');
-    $group = null;
-    foreach($config['settings']['buttons'] as $name => $config){
-      $type = substr($name, 0, 5);
-      if($type === 'group'){
-        $group = substr($name, 6);
-        $settings['groups'][$group] = array(
-          'label' => t($config['status']),
-          'weight' => $config['weight'],
-          'pos' => $group == 'right' ? 'right' : 'left',
-        );
-      }else{
-        if(isset($plugins[$name]) && $config['status']){
-          $handler = _mee_get_handler('buttons', $name);
-          $group = !empty($config['pid']) ? substr($config['pid'], 6) : null;
-          $settings['buttons'][$name] = array(
-            'label' => $handler->getLabel(),
-            'tip' => t($handler->getTip()),
-            'key' => $handler->getKey(),
-            'group' => !empty($group) ? $group : $handler->getGroup(),
-          );
-        }
-      }
+    foreach($config['settings']['toolbar']['buttons'] as $name => $c){
+      if(empty($c['status'])) continue;
+      $p = $plugins[$name];
+      $settings['buttons'][$name] = array(
+        'label' => '<i class="icon-' . $p['icon'] . '"></i>',
+        'tip' => $p['tip'],
+        'key' => $p['shortcut'],
+        'group' => $c['group'],
+      );
+      $groups_found[$c['group']] = 1;
     }
   }
-   mee_add_js($settings);
+
+  dsm($config);
+  if(!empty($config['settings']['toolbar']['groups'])){
+    foreach($config['settings']['toolbar']['groups'] as $name => $label){
+      if(empty($groups_found[$name])) continue;
+      $settings['groups'][$name] = array(
+        'label' => t($label),
+        'weight' => 0,
+        'pos' => $name == 'right' ? 'right' : 'left',
+      );
+    }
+  }
+  mee_add_js($settings);
 
   $element['#resizable'] = FALSE;
   $element['#id'] = $id;
@@ -241,7 +199,11 @@ function mee_library() {
       $path.'/js/mee.js' => array(),
     ),
     'css' => array(
-      $path . '/css/mee.scss' => array(
+      // $path . '/css/mee.scss' => array(
+      //   'type' => 'file',
+      //   'media' => 'screen',
+      // ),
+      $path . '/css/application.css' => array(
         'type' => 'file',
         'media' => 'screen',
       ),
@@ -321,44 +283,44 @@ function _mee_get_handler($type, $name) {
 }
 
 function theme_mee_config_form_buttons($vars){
-  $element = $vars['element'];
-  $table_id = 'mee-button-sort';
-  drupal_add_tabledrag($table_id, 'match', 'parent', 'mee-button-pid', 'mee-button-pid', 'mee-button-id', TRUE);
-  drupal_add_tabledrag($table_id, 'order', 'sibling', 'mee-button-weight', NULL, NULL, TRUE);
   $output = '';
+  $element = $vars['element'];
+  // $table_id = 'mee-button-sort';
+  // drupal_add_tabledrag($table_id, 'match', 'parent', 'mee-button-pid', 'mee-button-pid', 'mee-button-id', TRUE);
+  // drupal_add_tabledrag($table_id, 'order', 'sibling', 'mee-button-weight', NULL, NULL, TRUE);
 
-  $header = array(
-    'status' => t('Button'),
-    'id' => '',
-    'pid' => '',
-    //'depth' => '',
-    'weight' => t('Weight')
-  );
-  $rows = array();
-  foreach (element_children($element) as $key) {
-    $row = array();
-    $row['class'] = array('draggable');
-    $row['data'] = array();
-    $type = substr($key, 0, 5);
-    if($type === 'group'){
-      $row['class'][] = 'tabledrag-root';
-    }else{
-      $row['class'][] = 'tabledrag-leaf';
-    }
-    $indent = theme('indentation', array(
-      'size' => !empty($element[$key]['pid']['#value']) ? 1 : 0
-    ));
-    foreach ($header as $fieldname => $title) {
-      $row['data'][] = $indent.drupal_render($element[$key][$fieldname]);
-    }
-    $rows[] = $row;
-  }
+  // $header = array(
+  //   'status' => t('Button'),
+  //   'id' => '',
+  //   'pid' => '',
+  //   //'depth' => '',
+  //   'weight' => t('Weight')
+  // );
+  // $rows = array();
+  // foreach (element_children($element) as $key) {
+  //   $row = array();
+  //   $row['class'] = array('draggable');
+  //   $row['data'] = array();
+  //   $type = substr($key, 0, 5);
+  //   if($type === 'group'){
+  //     $row['class'][] = 'tabledrag-root';
+  //   }else{
+  //     $row['class'][] = 'tabledrag-leaf';
+  //   }
+  //   $indent = theme('indentation', array(
+  //     'size' => !empty($element[$key]['pid']['#value']) ? 1 : 0
+  //   ));
+  //   foreach ($header as $fieldname => $title) {
+  //     $row['data'][] = $indent.drupal_render($element[$key][$fieldname]);
+  //   }
+  //   $rows[] = $row;
+  // }
 
-  $output .= theme('table', array(
-    'header' => $header,
-    'rows' => $rows,
-    'attributes' => array('id' => $table_id), // needed for table dragging
-  ));
+  // $output .= theme('table', array(
+  //   'header' => $header,
+  //   'rows' => $rows,
+  //   'attributes' => array('id' => $table_id), // needed for table dragging
+  // ));
 
   $output .= drupal_render_children($element);
   return $output;

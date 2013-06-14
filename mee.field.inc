@@ -19,6 +19,7 @@ function mee_allowed_elements() {
 function mee_allowed_field_types() {
   $allowed_field_types = array(
     'text_long',
+    'text_with_summary',
   );
   drupal_alter('mee_allowed_field_types', $allowed_field_types);
   return $allowed_field_types;
@@ -31,6 +32,7 @@ function mee_allowed_field_types() {
 function mee_allowed_widget_types() {
   $allowed_widget_types = array(
     'text_textarea',
+    'text_textarea_with_summary',
   );
   drupal_alter('mee_allowed_widget_types', $allowed_widget_types);
   return $allowed_widget_types;
@@ -62,9 +64,14 @@ function mee_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
 
   // Add the mee settings to the field instance form.
   if ($allowed_field  && $allowed_widget) {
-  // dsm($form);
-  // dsm($form_state);
-    $default_values = $instance['settings']['mee']['settings'];
+
+    $defaults = array(
+      'autogrow' => 1,
+      'view' => 'default',
+      'labels_show' => 1,
+      'buttons' => array(),
+    );
+    $default_values = !empty($instance['settings']['mee']['settings']) ? $instance['settings']['mee']['settings'] : $defaults;
 
     // Fieldset for mee settings on this field instance.
     $form['instance']['settings']['mee'] = array(
@@ -118,10 +125,73 @@ function mee_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
       '#default_value' => isset($default_values['labels_show']) ? $default_values['labels_show'] : 0,
     );
 
+    $options = array(0 => '-- Allow All --');
+    foreach(filter_formats() as $format){
+      if($format->status) $options[$format->format] = $format->name;
+    }
+    $mee['settings']['text_format'] = array(
+      '#type' => 'select',
+      '#title' => t('Text format'),
+      '#options' => $options,
+      '#default_value' => isset($default_values['text_format']) ? $default_values['text_format'] : 0,
+    );
+
+    $mee['settings']['toolbar'] = array(
+      '#id' => 'mee-toolbar-editor',
+      '#type' => 'container',
+      '#tree' => TRUE,
+      '#theme' => 'mee_config_form_toolbar',
+      '#defaults' => $default_values['toolbar'],
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'mee') . '/js/mee.admin.js'),
+        'library' => array(
+          array('system', 'ui.sortable'),
+        )
+      )
+    );
+
+    $mee['settings']['toolbar']['groups'] = array(
+      '#type' => 'container',
+    );
+    $groups = &$mee['settings']['toolbar']['groups'];
+    foreach(mee_button_groups() as $k => $label){
+      $groups[$k] = array(
+        '#type' => 'textfield',
+        '#default_value' => !empty($default_values['toolbar']['groups'][$k]) ? $default_values['toolbar']['groups'][$k] : $label,
+      );
+    }
+
+    $mee['settings']['toolbar']['buttons'] = array(
+      '#type' => 'container',
+    );
+    $buttons = &$mee['settings']['toolbar']['buttons'];
+    $plugins = mee_get_plugin('buttons');
+    foreach($plugins as $name => $p){
+      $buttons[$name]['status'] = array(
+        '#type' => 'hidden',
+        '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['status']) ? $default_values['toolbar']['buttons'][$name]['status'] : 0,
+      );
+      $buttons[$name]['group'] = array(
+        '#type' => 'hidden',
+        '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['group']) ? $default_values['toolbar']['buttons'][$name]['group'] : 'disabled',
+      );
+      $buttons[$name]['weight'] = array(
+        '#type' => 'hidden',
+        '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['weight']) ? $default_values['toolbar']['buttons'][$name]['weight'] : 0,
+      );
+    }
+
+
+
+
+
+
+
     $mee['settings']['buttons'] = array(
       '#type' => 'container',
       '#tree' => TRUE,
       '#theme' => 'mee_config_form_buttons',
+      '#attributes' => array('class'=>array('js-hide'))
     );
     $buttons = &$mee['settings']['buttons'];
 
@@ -210,4 +280,65 @@ function mee_settings_buttons_order(&$settings){
     }
   }
   $settings['buttons'] = $ordered;
+}
+
+function theme_mee_config_form_toolbar($vars){
+  $output = '';
+  $element = $vars['element'];
+  $plugins = mee_get_plugin('buttons');
+  $defaults = $element['#defaults']['buttons'];
+  $setup = array();
+  foreach(mee_button_groups() as $k => $label){
+    $setup[$k] = array();
+  }
+  foreach($plugins as $name => $p){
+    $key = 'disabled';
+    $data = !empty($defaults[$name]) ? $defaults[$name] : array();
+    if(!empty($data['status']) && !empty($data['group'])) $key = $data['group'];
+    $weight = !empty($data['weight']) ? $data['weight'] : 0 ;
+    $setup[$key][$name] = $weight;
+    asort($setup[$key]);
+  }
+
+  // Disabled
+  $output .= '<div class="mee-wrapper">';
+  $output .= '  <div class="mee-toolbar btn-toolbar clearfix">';
+  $output .= '    <div class="mee-group pull-left">';
+  $output .= '      <label>Disabled <span>(drag to toolbar to activate)</span></label>';
+  $output .= '      <ul id="mee-group-disabled" class="btn-group mee-sortable">';
+  foreach($setup['disabled'] as $name => $weight){
+    $p = $plugins[$name];
+    $output .= '        <li id="mee-'.$name.'" class="btn btn-mini btn-inverse" title="'.$p['tip'].'">';
+    $output .= '          <i class="icon-'.$p['icon'].'"></i>';
+    $output .= '        </li>';
+  }
+  $output .= '      </ul>';
+  $output .= '    </div>';
+  $output .= '  </div>';
+  $output .= '</div>';
+
+  // Toolbar
+  $output .= '<div class="mee-wrapper">';
+  $output .= '  <div class="mee-toolbar btn-toolbar clearfix">';
+  foreach(mee_button_groups() as $k => $label){
+    $pull = $k == 'right' ? 'pull-right' : 'pull-left';
+    $output .= '    <div class="mee-group '.$pull.'">';
+    $output .=        drupal_render($element['groups'][$k]);
+    //$output .= '      <label>'.$label.'</label>';
+    $output .= '      <ul id="mee-group-' . $k . '" class="btn-group mee-sortable">';
+    foreach($setup[$k] as $name => $weight){
+      $p = $plugins[$name];
+      $output .= '        <li id="mee-'.$name.'" class="btn btn-mini btn-inverse" title="'.$p['tip'].'">';
+      $output .= '          <i class="icon-'.$p['icon'].'"></i>';
+      $output .= '        </li>';
+    }
+    $output .= '      </ul>';
+    $output .= '    </div>';
+  }
+
+  $output .= '  </div>';
+  $output .= '</div>';
+
+  $output .= drupal_render_children($element);
+  return $output;
 }
