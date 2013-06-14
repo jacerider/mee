@@ -1,54 +1,11 @@
 ﻿(function( $ ){
 
-var mee = {};
-// Editors on page
-mee.count = 0;
-// Preview update delay
-mee.previewUpdateDelay = 1000;
-// Animation speed
-mee.transitionSpeed = 400;
-// Keeps fullscreen boolean
-mee.fullscreenActive = false;
-// Wrapper object for mee
-mee.wrapper = {};
-// Wrapper object for editor
-mee.editorWrapper = {};
-// Wrapper inner object for editor
-mee.editorWrapper = {};
-// Editor object
-mee.editor = {};
-// Toolbar object
-mee.toolbar = {};
-// Preview iframe object
-mee.previewIframe = {};
-// Preview object
-mee.preview = {};
-// Default settings
-mee.settings = {
-  view          : 'default',  // The display style for the editor
-  autogrow      : true,       // Should we autogrow the textarea
-  labels_show   : true        // Show button labels in toolbar
-};
-mee.settings.buttons = {
-  bold          : {label:'<i class="icon-bold"></i>',tip:'Bold - Ctrl+B',key:'ctrl+b',group:'font'},
-  italic        : {label:'<i class="icon-italic"></i>',tip:'Italic - Ctrl+I',key:'ctrl+i',group:'font'},
-  heading       : {label:'Heading',tip:'Heading - Ctrl+H',key:'ctrl+h',group:'font'},
-  ul            : {label:'<i class="icon-list"></i>',tip:'Bulleted List - Ctrl+U',key:'ctrl+u',group:'list'},
-  ol            : {label:'<i class="icon-list-numbered"></i>',tip:'Numbered List - Ctrl+O',key:'ctrl+o',group:'list'},
-  link          : {label:'<i class="icon-link"></i>',tip:'Link - Ctrl+L',key:'ctrl+l',group:'other'},
-  image         : {label:'Image',tip:'Image - Ctrl+G',key:'ctrl+g',group:'other'},
-  blockquote    : {label:'<i class="icon-quote"></i>',tip:'Blockquote - Ctrl+Q',key:'ctrl+q',group:'other'},
-  rule          : {label:'<i class="icon-minus"></i>',tip:'Horizontal Rule - Ctrl+H',key:'ctrl+h',group:'other'},
-  code          : {label:'<i class="icon-code"></i>',tip:'Code - Ctrl+K',key:'ctrl+k',group:'other'}
-}
-mee.settings.groups = {
-  default       : {label:'',weight:0},
-  font          : {label:'Font Style',weight:1,pos:'left'},
-  list          : {label:'List',weight:2,pos:'left'},
-  other         : {label:'Other',weight:3,pos:'left'},
-  right         : {label:'Right',weight:4,pos:'right'},
-}
 
+/**
+ * GLOBAL VARIABLES
+ */
+
+var editorCount = 0;
 var nav = window.navigator;
 var re = window.RegExp;
 var doc = window.document;
@@ -65,483 +22,15 @@ var uaSniffed = {
   isOpera: /opera/.test(nav.userAgent.toLowerCase())
 };
 
+/**
+ * GLOBAL METHODS
+ */
+
 var methods = {};
 
 methods.init = function ( options ) {
-
-  var self = this;
-
-  // Default options
-  var settings = mee.settings = $.extend( mee.settings, options );
-
-  return this.filter('textarea').each(function(){
-
-    var $this = $(this)
-      , data = $this.data('mee');
-
-    // Check to see if we have already initialized mee on this field
-    if ( !data ) {
-      mee.editor = $this;
-      mee.settings = settings;
-
-      // Build editor
-      methods.editorBuild();
-    }
-
-  });
-
+  new meeClass( this, options );
 }
-
-methods.editorBuild = function () {
-  mee.count++;
-  mee.editor.bind('keyup', methods.editorChange).data('mee', mee.settings).wrap('<div id="mee-wrapper-' + mee.count + '" class="mee-wrapper mee-view-' + mee.settings.view + '"><div class="mee-wrapper-inner"><div class="mee-border well well-small"><div class="mee-inner"><div class="mee-editor"><div class="mee-editor-inner"><div class="mee-textarea-wrapper"></div></div></div></div></div></div></div>');
-  var callback = function(){
-    methods.previewResize(parseInt(this.style.height.replace('px','')));
-  }
-  if(mee.settings.autogrow == true) mee.editor.css({overflow:'hidden'}).autosize({append:"\n",callback:callback});
-  mee.editorWrapper = mee.editor.closest('.mee-editor');
-  mee.editorWrapperInner = mee.editor.closest('.mee-editor-inner');
-  mee.wrapper = mee.editor.closest('.mee-inner');
-
-  mee.editor.bind('keyup', 'shift+return', function( e ){
-    e.preventDefault();
-    var ss = new meeSelection();
-    meeCommands.autoIndent( ss );
-  });
-
-  // Build preview
-  methods.toolbarBuild();
-
-  // Build preview
-  methods.previewBuild();
-
-  // Update preview
-  methods.previewUpdate();
-
-}
-
-methods.editorChange = function ( e ) {
-  if(!mee.preview.length) return;
-  if(!methods.editorChangeTimeout){
-    methods.editorChangeTimeout = setTimeout(function(){
-      var value = methods.markdownConvert(mee.editor.val());
-      mee.preview.html(value);
-      methods.previewResize();
-      clearTimeout(methods.editorChangeTimeout);
-      delete methods.editorChangeTimeout;
-    },mee.previewUpdateDelay);
-  }
-  return this;
-}
-
-/**
- * Shows the editor
- *
- * @author JaceRider
- */
-methods.editorShow = function ( animated, callback  ) {
-  if(!animated){
-    mee.editorWrapper.show();
-    return;
-  }
-  callback = jQuery.isFunction(callback) ? callback : function(){};
-  var editorHeight = mee.editorWrapper.css({height:''}).outerHeight();
-  // var wrapperHeight = mee.wrapper.height();
-  mee.wrapper.animate({height:editorHeight}, mee.transitionSpeed);
-  mee.editorWrapper.animate({opacity:1, marginTop:0}, mee.transitionSpeed, function(){
-    mee.wrapper.removeAttr('style');
-    mee.editorWrapper.removeAttr('style');
-    callback( );
-  });
-}
-
-/**
- * Hides the editor
- *
- * @author JaceRider
- */
-methods.editorHide = function ( animated, callback ) {
-  if(!animated){
-    mee.editorWrapper.hide();
-    return;
-  }
-  callback = jQuery.isFunction(callback) ? callback : function(){};
-  var editorHeight = mee.editorWrapper.outerHeight();
-  console.log(editorHeight);
-  var wrapperHeight = mee.wrapper.outerHeight();
-  mee.wrapper.css({overflow:'hidden',height:wrapperHeight});
-  mee.editorWrapper.css({height:editorHeight}).animate({opacity:0, marginTop:editorHeight * -1}, mee.transitionSpeed, callback);
-}
-
-methods.previewBuild = function () {
-  //mee.preview = $('<div class="mee-preview" />');
-  var url = Drupal.settings.basePath + 'mee/iframe';
-  var style = 'display:none;';
-  if(mee.settings.autogrow == true) style += 'overflow:hidden;';
-  mee.previewIframe = $('<iframe src="'+url+'" class="mee-preview" style="'+style+'">');
-  mee.previewIframe.appendTo(mee.editorWrapperInner).after('<div class="mee-clear" />');
-  mee.previewIframe.wrap('<div class="mee-preview-wrapper" />');
-  methods.previewWatch();
-}
-
-methods.previewWatch = function() {
-  var preview = mee.previewIframe.contents().find('#mee-iframe-content');
-  if(preview.length){
-    mee.previewIframe.css({display:'block',opacity:0}).animate({opacity:1}, 200, function(){
-      $(this).css({display:'',opacity:''});
-    });
-    mee.preview = preview;
-    methods.editorChange().previewResize();
-    clearTimeout(methods.previewWatchTimeout);
-    delete methods.previewWatchTimeout;
-  }else{
-    methods.previewWatchTimeout = setTimeout(methods.previewWatch, 100);
-  }
-}
-
-/**
- * Updates the preview
- *
- * @author JaceRider
- */
-methods.previewUpdate = function () {
-  mee.editor.trigger('keyup');
-}
-
-methods.previewResize = function ( height ) {
-  if(!mee.preview.length || mee.settings.autogrow != true || mee.fullscreenActive == true) return;
-  // height = height ? height : mee.editor.outerHeight();
-  height = height ? height : 0;
-  height = Math.max(mee.editor.outerHeight(), Math.max(height, mee.preview.outerHeight()));
-  mee.previewIframe.css('height', height);
-  return this;
-}
-
-methods.markdownConvert = function ( text ) {
-  return marked(text);
-}
-
-methods.toolbarBuild = function () {
-
-  // Create the toolbar and add it to the DOM
-  var classes = '';
-  if(mee.settings.labels_show != true) classes += ' labels-hide';
-  mee.toolbar = $('<div class="mee-toolbar btn-toolbar clearfix' + classes + '" />');
-  mee.toolbar.prependTo(mee.editorWrapperInner);
-  //mee.editorWrapper.wrap('<div class="well well-small"></div>');
-
-  // Don't do anything else if we don't have any buttons.
-  if(!mee.settings.buttons) return;
-
-  // Build button groups
-  var groups = methods.toolbarBuildGroups();
-
-  // Add buttons to the groups
-  methods.toolbarBuildButtons( groups );
-}
-
-methods.toolbarBuildGroups = function () {
-  if(!mee.settings.buttons) return {};
-
-  var groups = {};
-  var groupClass = 'btn-group';
-  var groupMarkup = '<div class="btn-group" />';
-  for(i in mee.settings.groups){
-    // Don't show unneed groups
-    var need = false;
-    for(ii in mee.settings.buttons){
-      if(mee.settings.buttons[ii].group == i) need = true;
-    }
-    if(!need) continue;
-    var settings = mee.settings.groups[i];
-    settings.label = settings.label ? settings.label : '&nbsp;';
-    var label = '<label>' + settings.label + '</label>';
-    groups[i] = $(groupMarkup).appendTo(mee.toolbar).wrap('<div class="mee-group pull-' + settings.pos + '" />').before(label);
-  }
-  if($.isEmptyObject(groups)) groups[0] = $(groupMarkup).appendTo(mee.toolbar);
-  return groups;
-}
-
-methods.toolbarBuildButtons = function ( groups ) {
-  for(i in mee.settings.buttons){
-
-    // Default button options
-    var settings = $.extend( {
-      'label'     : null, // The button text
-      'tip'       : null, // The information set in the tooltip
-      'key'       : null, // The shortcut key combo
-      'group'     : null, // The button group
-      'command'   : i,  // By default, the command is the id
-      'id'        : i     // The button unique key
-    }, mee.settings.buttons[i]);
-
-    // If no group set or does not exist, reset to 0
-    var group = settings.group ? ( groups[settings.group] ? settings.group : 0 ) : 0;
-    var button = $('<button class="btn btn-mini btn-inverse" title="' + settings.tip + '" id="mee-' + i + '">' + settings.label + '</button>').data('mee',settings).appendTo(groups[group]);
-    if(jQuery.isFunction( button.tooltip ) && settings.tip){
-      button.tooltip({placement:'top',delay:500,container:'body'});
-    }
-
-    // Set up keybindings if desired
-    if(settings.key){
-      mee.editor.data(settings.key, button);
-      mee.editor.bind('keydown', settings.key, function( e ){
-        e.currentTarget = $(e.currentTarget).data(e.data);
-        methods.toolbarButtonClick(e);
-      });
-    }
-    button.bind('click', methods.toolbarButtonClick);
-
-  }
-}
-
-methods.toolbarButtonClick = function ( e ) {
-  e.preventDefault();
-  var settings = $(e.currentTarget).data('mee');
-
-  mee.editor.focus();
-
-  if($.isFunction(meeCommands[settings.command])){
-    var ss = new meeSelection();
-    // Send to command
-    meeCommands[settings.command]( ss );
-    // Update after command runs
-    methods.previewUpdate();
-  }else{
-    meeCommands.notFound(settings.id);
-  }
-}
-
-methods.destroy = function () {
-
-  return this.each(function(){
-    var $this = $(this),
-    data = $this.data('mee');
-    // Namespacing FTW
-    $(window).unbind('.mee');
-    data.mee.remove();
-    $this.removeData('mee');
-  });
-
-}
-
-
-
-
-
-/**
- * Full screen
- */
-methods.fullscreenLaunch = function ( element ) {
-  if(element.requestFullScreen) {
-    element.requestFullScreen();
-  } else if(element.mozRequestFullScreen) {
-    element.mozRequestFullScreen();
-  } else if(element.webkitRequestFullScreen) {
-    element.webkitRequestFullScreen();
-  }
-}
-
-methods.fullscreenCancel = function () {
-  if(document.cancelFullScreen) {
-    document.cancelFullScreen();
-  } else if(document.mozCancelFullScreen) {
-    document.mozCancelFullScreen();
-  } else if(document.webkitCancelFullScreen) {
-    document.webkitCancelFullScreen();
-  }
-}
-
-methods.fullscreenToggle = function ( e ) {
-  var element = mee.editorWrapperInner.closest('.mee-wrapper');
-  if(element.hasClass('mee-full')){
-    mee.fullscreenActive = false;
-    element.removeClass('mee-full');
-    // Update preview right when full screen is closed
-    methods.previewUpdate();
-  }else{
-    mee.fullscreenActive = true;
-    element.addClass('mee-full');
-  }
-}
-
-// Events
-document.addEventListener("fullscreenchange", function(e) {
-  methods.fullscreenToggle( e );
-});
-document.addEventListener("mozfullscreenchange", function(e) {
-  methods.fullscreenToggle( e );
-});
-document.addEventListener("webkitfullscreenchange", function(e) {
-  methods.fullscreenToggle( e );
-});
-
-
-
-
-
-
-
-
-/**
- * Selection
- */
-
-function meeSelection(){
-  this.selectionGet();
-}
-
-meeSelection.prototype.selectionGet = function () {
-  // Get selection
-  var ss = mee.editor.getSelection();
-  // Merge with self
-  $.extend(this, ss);
-  // Current content
-  this.content = mee.editor.val();
-  // Set some additional helpful information
-  this.before = this.content.slice(0, ss.start);
-  this.after = this.content.slice(ss.end);
-  this.startTag = "";
-  this.endTag = "";
-
-  return;
-}
-
-meeSelection.prototype.selectionSet = function () {
-  mee.editor.focus();
-  this.before = this.before + this.startTag;
-  this.after = this.endTag + this.after;
-  this.start = this.before.length;
-  this.end = this.before.length + this.text.length;
-  this.text = this.before + this.text + this.after;
-  // Update editor
-  mee.editor.val(this.text).setSelection(this.start, this.end);
-  if(mee.settings.autogrow == true) mee.editor.trigger('autosize');
-  methods.previewUpdate();
-}
-
-// startRegex: a regular expression to find the start tag
-// endRegex: a regular expresssion to find the end tag
-meeSelection.prototype.findTags = function (startRegex, endRegex) {
-  var ss = this;
-  var regex;
-  if (startRegex) {
-    regex = meeUtil.extendRegExp(startRegex, "", "$");
-    this.before = this.before.replace(regex,
-
-    function (match) {
-      ss.startTag = ss.startTag + match;
-      return "";
-    });
-    regex = meeUtil.extendRegExp(startRegex, "^", "");
-    this.text = this.text.replace(regex,
-
-    function (match) {
-      ss.startTag = ss.startTag + match;
-      return "";
-    });
-  }
-  if (endRegex) {
-    regex = meeUtil.extendRegExp(endRegex, "", "$");
-    this.text = this.text.replace(regex,
-
-    function (match) {
-      ss.endTag = match + ss.endTag;
-      return "";
-    });
-    regex = meeUtil.extendRegExp(endRegex, "^", "");
-    this.after = this.after.replace(regex,
-
-    function (match) {
-      ss.endTag = match + ss.endTag;
-      return "";
-    });
-  }
-};
-
-meeSelection.prototype.trimWhitespace = function (remove) {
-  var beforeReplacer, afterReplacer, that = this;
-  if (remove) {
-    beforeReplacer = afterReplacer = "";
-  } else {
-    beforeReplacer = function (s) {
-      that.before += s;
-      return "";
-    }
-    afterReplacer = function (s) {
-      that.after = s + that.after;
-      return "";
-    }
-  }
-  this.text = this.text.replace(/^(\s*)/, beforeReplacer).replace(/(\s*)$/, afterReplacer);
-};
-
-meeSelection.prototype.skipLines = function (nLinesBefore, nLinesAfter, findExtraNewlines) {
-  if (nLinesBefore === undefined) {
-    nLinesBefore = 1;
-  }
-  if (nLinesAfter === undefined) {
-    nLinesAfter = 1;
-  }
-  nLinesBefore++;
-  nLinesAfter++;
-  var regexText;
-  var replacementText;
-  // chrome bug ... documented at: http://meta.stackoverflow.com/questions/63307/blockquote-glitch-in-editor-in-chrome-6-and-7/65985#65985
-  if (navigator.userAgent.match(/Chrome/)) {
-    "X".match(/()./);
-  }
-  this.text = this.text.replace(/(^\n*)/, "");
-  this.startTag = this.startTag + re.$1;
-  this.text = this.text.replace(/(\n*$)/, "");
-  this.endTag = this.endTag + re.$1;
-  this.startTag = this.startTag.replace(/(^\n*)/, "");
-  this.before = this.before + re.$1;
-  this.endTag = this.endTag.replace(/(\n*$)/, "");
-  this.after = this.after + re.$1;
-  if (this.before) {
-    regexText = replacementText = "";
-    while (nLinesBefore--) {
-      regexText += "\\n?";
-      replacementText += "\n";
-    }
-    if (findExtraNewlines) {
-      regexText = "\\n*";
-    }
-    this.before = this.before.replace(new re(regexText + "$", ""), replacementText);
-  }
-  if (this.after) {
-    regexText = replacementText = "";
-    while (nLinesAfter--) {
-      regexText += "\\n?";
-      replacementText += "\n";
-    }
-    if (findExtraNewlines) {
-      regexText = "\\n*";
-    }
-    this.after = this.after.replace(new re(regexText, ""), replacementText);
-  }
-};
-
-meeSelection.prototype.unwrap = function (len) {
-  var txt = new re("([^\\n])\\n(?!(\\n|" + this.prefixes + "))", "g");
-  this.text = this.text.replace(txt, "$1 $2");
-};
-
-meeSelection.prototype.wrap = function (len) {
-  this.unwrap();
-  var regex = new re("(.{1," + len + "})( +|$\\n?)", "gm"),
-    that = this;
-  this.text = this.text.replace(regex, function (line, marked) {
-    if (new re("^" + that.prefixes, "").test(line)) {
-      return line;
-    }
-    return marked + "\n";
-  });
-  this.text = this.text.replace(/\s+$/, "");
-};
-
-
 
 
 /**
@@ -585,756 +74,1290 @@ meeUtil.extendRegExp = function (regex, pre, post) {
 }
 
 
-
-
-
 /**
- * Commands
+ * MEE Instance Class
+ *
+ * @author JaceRider
  */
+var meeClass = function ( selector, options ) {
 
-var meeCommands = {};
+  /**
+   * INSTANCE VARIABLES
+   */
+  var mee = {};
+  // Selector
+  mee.selector = selector;
+  // Preview update delay
+  mee.previewUpdateDelay = 1000;
+  // Animation speed
+  mee.transitionSpeed = 400;
+  // Keeps fullscreen boolean
+  mee.fullscreenActive = false;
+  // Wrapper object for mee
+  mee.wrapper = {};
+  // Wrapper object for editor
+  mee.editorWrapper = {};
+  // Wrapper inner object for editor
+  mee.editorWrapper = {};
+  // Editor object
+  mee.editor = {};
+  // Toolbar object
+  mee.toolbar = {};
+  // Preview iframe object
+  mee.previewIframe = {};
+  // Preview object
+  mee.preview = {};
+  // Default settings
+  mee.settings = {
+    view          : 'default',  // The display style for the editor
+    autogrow      : true,       // Should we autogrow the textarea
+    labels_show   : true        // Show button labels in toolbar
+  };
+  mee.settings.buttons = {
+    bold          : {label:'<i class="icon-bold"></i>',tip:'Bold - Ctrl+B',key:'ctrl+b',group:'font'},
+    italic        : {label:'<i class="icon-italic"></i>',tip:'Italic - Ctrl+I',key:'ctrl+i',group:'font'},
+    heading       : {label:'Heading',tip:'Heading - Ctrl+H',key:'ctrl+h',group:'font'},
+    ul            : {label:'<i class="icon-list"></i>',tip:'Bulleted List - Ctrl+U',key:'ctrl+u',group:'list'},
+    ol            : {label:'<i class="icon-list-numbered"></i>',tip:'Numbered List - Ctrl+O',key:'ctrl+o',group:'list'},
+    link          : {label:'<i class="icon-link"></i>',tip:'Link - Ctrl+L',key:'ctrl+l',group:'other'},
+    image         : {label:'Image',tip:'Image - Ctrl+G',key:'ctrl+g',group:'other'},
+    blockquote    : {label:'<i class="icon-quote"></i>',tip:'Blockquote - Ctrl+Q',key:'ctrl+q',group:'other'},
+    rule          : {label:'<i class="icon-minus"></i>',tip:'Horizontal Rule - Ctrl+H',key:'ctrl+h',group:'other'},
+    code          : {label:'<i class="icon-code"></i>',tip:'Code - Ctrl+K',key:'ctrl+k',group:'other'}
+  }
+  mee.settings.groups = {
+    default       : {label:'',weight:0},
+    font          : {label:'Font Style',weight:1,pos:'left'},
+    list          : {label:'List',weight:2,pos:'left'},
+    other         : {label:'Other',weight:3,pos:'left'},
+    right         : {label:'Right',weight:4,pos:'right'},
+  }
 
-meeCommands.notFound = function ( command ) {
-  console.log('Command "' + command + '" not found.');
-}
+  /**
+   * METHODS
+   */
 
-meeCommands.bold = function ( ss ) {
-  meeCommands.boldOrItalic( ss, 2, 'strong text' );
-}
+  var methods = {};
+  methods.init = function ( options ) {
 
-meeCommands.italic = function ( ss ) {
-  meeCommands.boldOrItalic( ss, 1, 'emphasized text' );
-}
+    var self = this;
 
-meeCommands.link = function ( ss ) {
-  meeCommands.linkOrImage( ss );
-}
+    // Default options
+    var settings = mee.settings = $.extend( mee.settings, options );
 
-meeCommands.image = function ( ss ) {
-  meeCommands.linkOrImage( ss, true );
-}
+    return mee.selector.filter('textarea').each(function(){
 
-meeCommands.ul = function ( ss ) {
-  meeCommands.list(ss, false);
-}
+      var $this = $(this)
+        , data = $this.data('mee');
 
-meeCommands.ol = function ( ss ) {
-  meeCommands.list(ss, true);
-}
+      // Check to see if we have already initialized mee on this field
+      if ( !data ) {
+        mee.editor = $this;
+        mee.settings = settings;
 
-meeCommands.rule = function ( ss ) {
-  ss.startTag = "----------\n";
-  ss.text = "";
-  ss.skipLines(2, 1, true);
-  ss.selectionSet();
-}
+        // Build editor
+        methods.editorBuild();
+      }
 
-meeCommands.linkOrImage = function ( ss, isImage ) {
-  ss.trimWhitespace();
-  ss.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
-  var background;
-  if (ss.endTag.length > 1 && ss.startTag.length > 0) {
-    ss.startTag = ss.startTag.replace(/!?\[/, "");
-    ss.endTag = "";
-    this.addLinkDef(ss, null);
-    ss.selectionSet();
-  } else {
-    // We're moving start and end tag back into the selection, since (as we're in the else block) we're not
-    // *removing* a link, but *adding* one, so whatever findTags() found is now back to being part of the
-    // link text. linkEnteredCallback takes care of escaping any brackets.
-    ss.text = ss.startTag + ss.text + ss.endTag;
-    ss.startTag = ss.endTag = "";
-    if (/\n\n/.test(ss.text)) {
-      this.addLinkDef(ss, null);
+    });
+
+  }
+
+  methods.editorBuild = function () {
+    editorCount++;
+    mee.editor.bind('keyup', methods.editorChange).data('mee', mee.settings).wrap('<div id="mee-wrapper-' + editorCount + '" class="mee-wrapper mee-view-' + mee.settings.view + '"><div class="mee-wrapper-inner"><div class="mee-border well well-small"><div class="mee-inner"><div class="mee-editor"><div class="mee-editor-inner"><div class="mee-textarea-wrapper"></div></div></div></div></div></div></div>');
+    var callback = function(){
+      methods.previewResize(parseInt(this.style.height.replace('px','')));
+    }
+    if(mee.settings.autogrow == true) mee.editor.css({overflow:'hidden'}).autosize({append:"\n",callback:callback});
+    mee.editorWrapper = mee.editor.closest('.mee-editor');
+    mee.editorWrapperInner = mee.editor.closest('.mee-editor-inner');
+    mee.wrapper = mee.editor.closest('.mee-inner');
+
+    mee.editor.bind('keyup', 'shift+return', function( e ){
+      e.preventDefault();
+      var ss = new meeSelection();
+      meeCommands.autoIndent( ss );
+    });
+
+    // Build preview
+    methods.toolbarBuild();
+
+    // Build preview
+    methods.previewBuild();
+
+    // Update preview
+    methods.previewUpdate();
+
+  }
+
+  methods.editorChange = function ( e ) {
+    if(!mee.preview.length) return;
+    if(!methods.editorChangeTimeout){
+      methods.editorChangeTimeout = setTimeout(function(){
+        var value = methods.markdownConvert(mee.editor.val());
+        mee.preview.html(value);
+        methods.previewResize();
+        clearTimeout(methods.editorChangeTimeout);
+        delete methods.editorChangeTimeout;
+      },mee.previewUpdateDelay);
+    }
+    return this;
+  }
+
+  /**
+   * Shows the editor
+   *
+   * @author JaceRider
+   */
+  methods.editorShow = function ( animated, callback  ) {
+    if(!animated){
+      mee.editorWrapper.show();
       return;
     }
-    var that = this;
-    // The function to be executed when you enter a link and press OK or Cancel.
-    // Marks up the link and adds the ref.
-    var linkEnteredCallback = function (link) {
-      if (link !== null) {
-        ss.text = (" " + ss.text).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
-        var linkDef = " [999]: " + properlyEncoded(link);
-        var num = that.addLinkDef(ss, linkDef);
-        ss.startTag = isImage ? "![" : "[";
-        ss.endTag = "][" + num + "]";
-        if (!ss.text) {
-          if (isImage) {
-            ss.text = "enter image description here";
-          } else {
-            ss.text = "enter link description here";
+    callback = jQuery.isFunction(callback) ? callback : function(){};
+    var editorHeight = mee.editorWrapper.css({height:''}).outerHeight();
+    // var wrapperHeight = mee.wrapper.height();
+    mee.wrapper.animate({height:editorHeight}, mee.transitionSpeed);
+    mee.editorWrapper.animate({opacity:1, marginTop:0}, mee.transitionSpeed, function(){
+      mee.wrapper.removeAttr('style');
+      mee.editorWrapper.removeAttr('style');
+      callback( );
+    });
+  }
+
+  /**
+   * Hides the editor
+   *
+   * @author JaceRider
+   */
+  methods.editorHide = function ( animated, callback ) {
+    if(!animated){
+      mee.editorWrapper.hide();
+      return;
+    }
+    callback = jQuery.isFunction(callback) ? callback : function(){};
+    var editorHeight = mee.editorWrapper.outerHeight();
+    var wrapperHeight = mee.wrapper.outerHeight();
+    mee.wrapper.css({overflow:'hidden',height:wrapperHeight});
+    mee.editorWrapper.css({height:editorHeight}).animate({opacity:0, marginTop:editorHeight * -1}, mee.transitionSpeed, callback);
+  }
+
+  methods.previewBuild = function () {
+    //mee.preview = $('<div class="mee-preview" />');
+    var url = Drupal.settings.basePath + 'mee/iframe';
+    var style = 'display:none;';
+    if(mee.settings.autogrow == true) style += 'overflow:hidden;';
+    mee.previewIframe = $('<iframe src="'+url+'" class="mee-preview" style="'+style+'">');
+    mee.previewIframe.appendTo(mee.editorWrapperInner).after('<div class="mee-clear" />');
+    mee.previewIframe.wrap('<div class="mee-preview-wrapper" />');
+    methods.previewWatch();
+  }
+
+  methods.previewWatch = function() {
+    var preview = mee.previewIframe.contents().find('.mee-iframe-content');
+    if(preview.length){
+      mee.previewIframe.css({display:'block',opacity:0}).animate({opacity:1}, 200, function(){
+        $(this).css({display:'',opacity:''});
+      });
+      mee.preview = preview;
+      methods.editorChange().previewResize();
+      clearTimeout(methods.previewWatchTimeout);
+      delete methods.previewWatchTimeout;
+    }else{
+      methods.previewWatchTimeout = setTimeout(methods.previewWatch, 100);
+    }
+  }
+
+  /**
+   * Updates the preview
+   *
+   * @author JaceRider
+   */
+  methods.previewUpdate = function () {
+    mee.editor.trigger('keyup');
+  }
+
+  methods.previewResize = function ( height ) {
+    if(!mee.preview.length || mee.settings.autogrow != true || mee.fullscreenActive == true) return;
+    // height = height ? height : mee.editor.outerHeight();
+    height = height ? height : 0;
+    height = Math.max(mee.editor.outerHeight(), Math.max(height, mee.preview.outerHeight()));
+    mee.previewIframe.css('height', height);
+    return this;
+  }
+
+  methods.markdownConvert = function ( text ) {
+    return marked(text);
+  }
+
+  methods.toolbarBuild = function () {
+
+    // Create the toolbar and add it to the DOM
+    var classes = '';
+    if(mee.settings.labels_show != true) classes += ' labels-hide';
+    mee.toolbar = $('<div class="mee-toolbar btn-toolbar clearfix' + classes + '" />');
+    mee.toolbar.prependTo(mee.editorWrapperInner);
+    //mee.editorWrapper.wrap('<div class="well well-small"></div>');
+
+    // Don't do anything else if we don't have any buttons.
+    if(!mee.settings.buttons) return;
+
+    // Build button groups
+    var groups = methods.toolbarBuildGroups();
+
+    // Add buttons to the groups
+    methods.toolbarBuildButtons( groups );
+  }
+
+  methods.toolbarBuildGroups = function () {
+    if(!mee.settings.buttons) return {};
+
+    var groups = {};
+    var groupClass = 'btn-group';
+    var groupMarkup = '<div class="btn-group" />';
+    for(i in mee.settings.groups){
+      // Don't show unneed groups
+      var need = false;
+      for(ii in mee.settings.buttons){
+        if(mee.settings.buttons[ii].group == i) need = true;
+      }
+      if(!need) continue;
+      var settings = mee.settings.groups[i];
+      settings.label = settings.label ? settings.label : '&nbsp;';
+      var label = '<label>' + settings.label + '</label>';
+      groups[i] = $(groupMarkup).appendTo(mee.toolbar).wrap('<div class="mee-group pull-' + settings.pos + '" />').before(label);
+    }
+    if($.isEmptyObject(groups)) groups[0] = $(groupMarkup).appendTo(mee.toolbar);
+    return groups;
+  }
+
+  methods.toolbarBuildButtons = function ( groups ) {
+    for(i in mee.settings.buttons){
+
+      // Default button options
+      var settings = $.extend( {
+        'label'     : null, // The button text
+        'tip'       : null, // The information set in the tooltip
+        'key'       : null, // The shortcut key combo
+        'group'     : null, // The button group
+        'command'   : i,  // By default, the command is the id
+        'id'        : i     // The button unique key
+      }, mee.settings.buttons[i]);
+
+      // If no group set or does not exist, reset to 0
+      var group = settings.group ? ( groups[settings.group] ? settings.group : 0 ) : 0;
+      var button = $('<button class="btn btn-mini btn-inverse" title="' + settings.tip + '" id="mee-' + i + '">' + settings.label + '</button>').data('mee',settings).appendTo(groups[group]);
+      if(jQuery.isFunction( button.tooltip ) && settings.tip){
+        button.tooltip({placement:'top',delay:500,container:'body'});
+      }
+
+      // Set up keybindings if desired
+      if(settings.key){
+        mee.editor.data(settings.key, button);
+        mee.editor.bind('keydown', settings.key, function( e ){
+          e.currentTarget = $(e.currentTarget).data(e.data);
+          methods.toolbarButtonClick(e);
+        });
+      }
+      button.bind('click', methods.toolbarButtonClick);
+
+    }
+  }
+
+  methods.toolbarButtonClick = function ( e ) {
+    e.preventDefault();
+    var settings = $(e.currentTarget).data('mee');
+
+    mee.editor.focus();
+
+    if($.isFunction(meeCommands[settings.command])){
+      var ss = new meeSelection();
+      // Send to command
+      meeCommands[settings.command]( ss, mee );
+      // Update after command runs
+      methods.previewUpdate();
+    }else{
+      meeCommands.notFound(settings.id);
+    }
+  }
+
+  methods.destroy = function () {
+
+    return this.each(function(){
+      var $this = $(this),
+      data = $this.data('mee');
+      // Namespacing FTW
+      $(window).unbind('.mee');
+      data.mee.remove();
+      $this.removeData('mee');
+    });
+
+  }
+
+
+  /**
+   * Full screen
+   */
+  methods.fullscreenLaunch = function ( element ) {
+    if(element.requestFullScreen) {
+      element.requestFullScreen();
+    } else if(element.mozRequestFullScreen) {
+      element.mozRequestFullScreen();
+    } else if(element.webkitRequestFullScreen) {
+      element.webkitRequestFullScreen();
+    }
+  }
+
+  methods.fullscreenCancel = function () {
+    if(document.cancelFullScreen) {
+      document.cancelFullScreen();
+    } else if(document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    } else if(document.webkitCancelFullScreen) {
+      document.webkitCancelFullScreen();
+    }
+  }
+
+  methods.fullscreenToggle = function ( e ) {
+    var element = mee.editorWrapperInner.closest('.mee-wrapper');
+    if(element.hasClass('mee-full')){
+      mee.fullscreenActive = false;
+      element.removeClass('mee-full');
+      // Update preview right when full screen is closed
+      methods.previewUpdate();
+    }else{
+      mee.fullscreenActive = true;
+      element.addClass('mee-full');
+    }
+  }
+
+  // Events
+  document.addEventListener("fullscreenchange", function(e) {
+    methods.fullscreenToggle( e );
+  });
+  document.addEventListener("mozfullscreenchange", function(e) {
+    methods.fullscreenToggle( e );
+  });
+  document.addEventListener("webkitfullscreenchange", function(e) {
+    methods.fullscreenToggle( e );
+  });
+
+
+  /**
+   * Selection
+   */
+
+  function meeSelection( mee ){
+    var mee = mee;
+    this.selectionGet();
+  }
+
+  meeSelection.prototype.selectionGet = function () {
+    // Get selection
+    var ss = mee.editor.getSelection();
+    // Merge with self
+    $.extend(this, ss);
+    // Current content
+    this.content = mee.editor.val();
+    // Set some additional helpful information
+    this.before = this.content.slice(0, ss.start);
+    this.after = this.content.slice(ss.end);
+    this.startTag = "";
+    this.endTag = "";
+
+    return;
+  }
+
+  meeSelection.prototype.selectionSet = function () {
+    mee.editor.focus();
+    this.before = this.before + this.startTag;
+    this.after = this.endTag + this.after;
+    this.start = this.before.length;
+    this.end = this.before.length + this.text.length;
+    this.text = this.before + this.text + this.after;
+    // Update editor
+    mee.editor.val(this.text).setSelection(this.start, this.end);
+    if(mee.settings.autogrow == true) mee.editor.trigger('autosize');
+    methods.previewUpdate();
+  }
+
+  // startRegex: a regular expression to find the start tag
+  // endRegex: a regular expresssion to find the end tag
+  meeSelection.prototype.findTags = function (startRegex, endRegex) {
+    var ss = this;
+    var regex;
+    if (startRegex) {
+      regex = meeUtil.extendRegExp(startRegex, "", "$");
+      this.before = this.before.replace(regex,
+
+      function (match) {
+        ss.startTag = ss.startTag + match;
+        return "";
+      });
+      regex = meeUtil.extendRegExp(startRegex, "^", "");
+      this.text = this.text.replace(regex,
+
+      function (match) {
+        ss.startTag = ss.startTag + match;
+        return "";
+      });
+    }
+    if (endRegex) {
+      regex = meeUtil.extendRegExp(endRegex, "", "$");
+      this.text = this.text.replace(regex,
+
+      function (match) {
+        ss.endTag = match + ss.endTag;
+        return "";
+      });
+      regex = meeUtil.extendRegExp(endRegex, "^", "");
+      this.after = this.after.replace(regex,
+
+      function (match) {
+        ss.endTag = match + ss.endTag;
+        return "";
+      });
+    }
+  };
+
+  meeSelection.prototype.trimWhitespace = function (remove) {
+    var beforeReplacer, afterReplacer, that = this;
+    if (remove) {
+      beforeReplacer = afterReplacer = "";
+    } else {
+      beforeReplacer = function (s) {
+        that.before += s;
+        return "";
+      }
+      afterReplacer = function (s) {
+        that.after = s + that.after;
+        return "";
+      }
+    }
+    this.text = this.text.replace(/^(\s*)/, beforeReplacer).replace(/(\s*)$/, afterReplacer);
+  };
+
+  meeSelection.prototype.skipLines = function (nLinesBefore, nLinesAfter, findExtraNewlines) {
+    if (nLinesBefore === undefined) {
+      nLinesBefore = 1;
+    }
+    if (nLinesAfter === undefined) {
+      nLinesAfter = 1;
+    }
+    nLinesBefore++;
+    nLinesAfter++;
+    var regexText;
+    var replacementText;
+    // chrome bug ... documented at: http://meta.stackoverflow.com/questions/63307/blockquote-glitch-in-editor-in-chrome-6-and-7/65985#65985
+    if (navigator.userAgent.match(/Chrome/)) {
+      "X".match(/()./);
+    }
+    this.text = this.text.replace(/(^\n*)/, "");
+    this.startTag = this.startTag + re.$1;
+    this.text = this.text.replace(/(\n*$)/, "");
+    this.endTag = this.endTag + re.$1;
+    this.startTag = this.startTag.replace(/(^\n*)/, "");
+    this.before = this.before + re.$1;
+    this.endTag = this.endTag.replace(/(\n*$)/, "");
+    this.after = this.after + re.$1;
+    if (this.before) {
+      regexText = replacementText = "";
+      while (nLinesBefore--) {
+        regexText += "\\n?";
+        replacementText += "\n";
+      }
+      if (findExtraNewlines) {
+        regexText = "\\n*";
+      }
+      this.before = this.before.replace(new re(regexText + "$", ""), replacementText);
+    }
+    if (this.after) {
+      regexText = replacementText = "";
+      while (nLinesAfter--) {
+        regexText += "\\n?";
+        replacementText += "\n";
+      }
+      if (findExtraNewlines) {
+        regexText = "\\n*";
+      }
+      this.after = this.after.replace(new re(regexText, ""), replacementText);
+    }
+  };
+
+  meeSelection.prototype.unwrap = function (len) {
+    var txt = new re("([^\\n])\\n(?!(\\n|" + this.prefixes + "))", "g");
+    this.text = this.text.replace(txt, "$1 $2");
+  };
+
+  meeSelection.prototype.wrap = function (len) {
+    this.unwrap();
+    var regex = new re("(.{1," + len + "})( +|$\\n?)", "gm"),
+      that = this;
+    this.text = this.text.replace(regex, function (line, marked) {
+      if (new re("^" + that.prefixes, "").test(line)) {
+        return line;
+      }
+      return marked + "\n";
+    });
+    this.text = this.text.replace(/\s+$/, "");
+  };
+
+
+  /**
+   * Commands
+   */
+
+  var meeCommands = {};
+
+  meeCommands.notFound = function ( command ) {
+    if (window.console && window.console.log) {
+      console.log('Command "' + command + '" not found.');
+    }
+  }
+
+  meeCommands.bold = function ( ss ) {
+    meeCommands.boldOrItalic( ss, 2, 'strong text' );
+  }
+
+  meeCommands.italic = function ( ss ) {
+    meeCommands.boldOrItalic( ss, 1, 'emphasized text' );
+  }
+
+  meeCommands.link = function ( ss ) {
+    meeCommands.linkOrImage( ss );
+  }
+
+  meeCommands.image = function ( ss ) {
+    meeCommands.linkOrImage( ss, true );
+  }
+
+  meeCommands.ul = function ( ss ) {
+    meeCommands.list(ss, false);
+  }
+
+  meeCommands.ol = function ( ss ) {
+    meeCommands.list(ss, true);
+  }
+
+  meeCommands.rule = function ( ss ) {
+    ss.startTag = "----------\n";
+    ss.text = "";
+    ss.skipLines(2, 1, true);
+    ss.selectionSet();
+  }
+
+  meeCommands.linkOrImage = function ( ss, isImage ) {
+    ss.trimWhitespace();
+    ss.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
+    var background;
+    if (ss.endTag.length > 1 && ss.startTag.length > 0) {
+      ss.startTag = ss.startTag.replace(/!?\[/, "");
+      ss.endTag = "";
+      this.addLinkDef(ss, null);
+      ss.selectionSet();
+    } else {
+      // We're moving start and end tag back into the selection, since (as we're in the else block) we're not
+      // *removing* a link, but *adding* one, so whatever findTags() found is now back to being part of the
+      // link text. linkEnteredCallback takes care of escaping any brackets.
+      ss.text = ss.startTag + ss.text + ss.endTag;
+      ss.startTag = ss.endTag = "";
+      if (/\n\n/.test(ss.text)) {
+        this.addLinkDef(ss, null);
+        return;
+      }
+      var that = this;
+      // The function to be executed when you enter a link and press OK or Cancel.
+      // Marks up the link and adds the ref.
+      var linkEnteredCallback = function (link) {
+        if (link !== null) {
+          ss.text = (" " + ss.text).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
+          var linkDef = " [999]: " + properlyEncoded(link);
+          var num = that.addLinkDef(ss, linkDef);
+          ss.startTag = isImage ? "![" : "[";
+          ss.endTag = "][" + num + "]";
+          if (!ss.text) {
+            if (isImage) {
+              ss.text = "enter image description here";
+            } else {
+              ss.text = "enter link description here";
+            }
           }
         }
+        ss.selectionSet();
+      };
+
+      var title = '';
+      if (isImage) {
+        title = 'Insert Image';
+        info = imageDialogText;
+        value = imageDefaultText;
+      }else{
+        title = 'Insert Link';
+        info = linkDialogText;
+        value = linkDefaultText;
       }
-      ss.selectionSet();
+
+      var widget = new meeWidget({
+        title: title
+      });
+
+      var $body = $('<div class="row-fluid" />').append(info);
+      widget.$input = $('<input class="span12" type="text" placeholder="' + value + '">')
+        .appendTo($body);
+
+      widget.onShowCallback = function( widget ){
+        widget.$input.focus();
+      }
+
+      var onSubmitCallback = function( widget ){
+        var text = widget.$input.val();
+        if(text){
+          text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
+          if (!/^(?:https?|ftp):\/\//.test(text)) text = 'http://' + text;
+          linkEnteredCallback(text);
+        }
+      }
+
+      widget
+        .addToBody( $body )
+        .addSubmit('OK', onSubmitCallback)
+        .addClose()
+        .show();
+
+      return true;
+    }
+  };
+
+
+  function properlyEncoded(linkdef) {
+    return linkdef.replace(/^\s*(.*?)(?:\s+"(.+)")?\s*$/, function (wholematch, link, title) {
+      link = link.replace(/\?.*$/, function (querypart) {
+        return querypart.replace(/\+/g, " "); // in the query string, a plus and a space are identical
+      });
+      link = decodeURIComponent(link); // unencode first, to prevent double encoding
+      link = encodeURI(link).replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29');
+      link = link.replace(/\?.*$/, function (querypart) {
+        return querypart.replace(/\+/g, "%2b"); // since we replaced plus with spaces in the query part, all pluses that now appear where originally encoded
+      });
+      if (title) {
+        title = title.trim ? title.trim() : title.replace(/^\s*/, "").replace(/\s*$/, "");
+        title = $.trim(title).replace(/"/g, "quot;").replace(/\(/g, "&#40;").replace(/\)/g, "&#41;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      }
+      return title ? link + ' "' + title + '"' : link;
+    });
+  }
+
+  meeCommands.addLinkDef = function ( ss, linkDef ) {
+    var refNumber = 0; // The current reference number
+    var defsToAdd = {}; //
+    // Start with a clean slate by removing all previous link definitions.
+    ss.before = this.stripLinkDefs(ss.before, defsToAdd);
+    ss.text = this.stripLinkDefs(ss.text, defsToAdd);
+    ss.after = this.stripLinkDefs(ss.after, defsToAdd);
+    var defs = "";
+    var regex = /(\[)((?:\[[^\]]*\]|[^\[\]])*)(\][ ]?(?:\n[ ]*)?\[)(\d+)(\])/g;
+    var addDefNumber = function (def) {
+      refNumber++;
+      def = def.replace(/^[ ]{0,3}\[(\d+)\]:/, "  [" + refNumber + "]:");
+      defs += "\n" + def;
     };
-
-    var title = '';
-    if (isImage) {
-      title = 'Insert Image';
-      info = imageDialogText;
-      value = imageDefaultText;
-    }else{
-      title = 'Insert Link';
-      info = linkDialogText;
-      value = linkDefaultText;
-    }
-
-    var widget = new meeWidget({
-      title: title
-    });
-
-    var $body = $('<div class="row-fluid" />').append(info);
-    widget.$input = $('<input class="span12" type="text" placeholder="' + value + '">')
-      .appendTo($body);
-
-    widget.onShowCallback = function( widget ){
-      widget.$input.focus();
-    }
-
-    var onSubmitCallback = function( widget ){
-      var text = widget.$input.val();
-      if(text){
-        text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
-        if (!/^(?:https?|ftp):\/\//.test(text)) text = 'http://' + text;
-        linkEnteredCallback(text);
+    // note that
+    // a) the recursive call to getLink cannot go infinite, because by definition
+    //    of regex, inner is always a proper substring of wholeMatch, and
+    // b) more than one level of nesting is neither supported by the regex
+    //    nor making a lot of sense (the only use case for nesting is a linked image)
+    var getLink = function (wholeMatch, before, inner, afterInner, id, end) {
+      inner = inner.replace(regex, getLink);
+      if (defsToAdd[id]) {
+        addDefNumber(defsToAdd[id]);
+        return before + inner + afterInner + refNumber + end;
       }
-    }
-
-    widget
-      .addToBody( $body )
-      .addSubmit('OK', onSubmitCallback)
-      .addClose()
-      .show();
-
-    return true;
-  }
-};
-
-
-function properlyEncoded(linkdef) {
-  return linkdef.replace(/^\s*(.*?)(?:\s+"(.+)")?\s*$/, function (wholematch, link, title) {
-    link = link.replace(/\?.*$/, function (querypart) {
-      return querypart.replace(/\+/g, " "); // in the query string, a plus and a space are identical
-    });
-    link = decodeURIComponent(link); // unencode first, to prevent double encoding
-    link = encodeURI(link).replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29');
-    link = link.replace(/\?.*$/, function (querypart) {
-      return querypart.replace(/\+/g, "%2b"); // since we replaced plus with spaces in the query part, all pluses that now appear where originally encoded
-    });
-    if (title) {
-      title = title.trim ? title.trim() : title.replace(/^\s*/, "").replace(/\s*$/, "");
-      title = $.trim(title).replace(/"/g, "quot;").replace(/\(/g, "&#40;").replace(/\)/g, "&#41;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-    return title ? link + ' "' + title + '"' : link;
-  });
-}
-
-meeCommands.addLinkDef = function ( ss, linkDef ) {
-  var refNumber = 0; // The current reference number
-  var defsToAdd = {}; //
-  // Start with a clean slate by removing all previous link definitions.
-  ss.before = this.stripLinkDefs(ss.before, defsToAdd);
-  ss.text = this.stripLinkDefs(ss.text, defsToAdd);
-  ss.after = this.stripLinkDefs(ss.after, defsToAdd);
-  var defs = "";
-  var regex = /(\[)((?:\[[^\]]*\]|[^\[\]])*)(\][ ]?(?:\n[ ]*)?\[)(\d+)(\])/g;
-  var addDefNumber = function (def) {
-    refNumber++;
-    def = def.replace(/^[ ]{0,3}\[(\d+)\]:/, "  [" + refNumber + "]:");
-    defs += "\n" + def;
-  };
-  // note that
-  // a) the recursive call to getLink cannot go infinite, because by definition
-  //    of regex, inner is always a proper substring of wholeMatch, and
-  // b) more than one level of nesting is neither supported by the regex
-  //    nor making a lot of sense (the only use case for nesting is a linked image)
-  var getLink = function (wholeMatch, before, inner, afterInner, id, end) {
-    inner = inner.replace(regex, getLink);
-    if (defsToAdd[id]) {
-      addDefNumber(defsToAdd[id]);
-      return before + inner + afterInner + refNumber + end;
-    }
-    return wholeMatch;
-  };
-  ss.before = ss.before.replace(regex, getLink);
-  if (linkDef) {
-    addDefNumber(linkDef);
-  } else {
-    ss.text = ss.text.replace(regex, getLink);
-  }
-  var refOut = refNumber;
-  ss.after = ss.after.replace(regex, getLink);
-  if (ss.after) {
-    ss.after = ss.after.replace(/\n*$/, "");
-  }
-  if (!ss.after) {
-    ss.text = ss.text.replace(/\n*$/, "");
-  }
-  ss.after += "\n\n" + defs;
-  return refOut;
-};
-
-meeCommands.stripLinkDefs = function ( text, defsToAdd ) {
-  text = text.replace(/^[ ]{0,3}\[(\d+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|$)/gm,
-  function (totalMatch, id, link, newlines, title) {
-    defsToAdd[id] = totalMatch.replace(/\s*$/, "");
-    if (newlines) {
-      // Strip the title and return that separately.
-      defsToAdd[id] = totalMatch.replace(/["(](.+?)[")]$/, "");
-      return newlines + title;
-    }
-    return "";
-  });
-  return text;
-};
-
-/**
- * Combined function to assign single or double *
- *
- * @author JaceRider
- *
- * @param  {object}   ss
- *   The selection object.
- * @param  {integer}  stars
- *   The number of * to use. 1 for italic, 2 for bold.
- * @param  {string}   filler
- *   The text to use if nothing is selected.
- */
-meeCommands.boldOrItalic = function ( ss, stars, filler) {
-  // Get rid of whitespace and fixup newlines.
-  ss.trimWhitespace();
-  ss.text = ss.text.replace(/\n{2,}/g, "\n");
-
-  // Look for stars before and after.  Is the selection already marked up?
-  // note that these regex matches cannot fail
-  var starsBefore = /(\**$)/.exec(ss.before)[0];
-  var starsAfter = /(^\**)/.exec(ss.after)[0];
-  var prevStars = Math.min(starsBefore.length, starsAfter.length);
-
-  // Remove stars if we have to since the button acts as a toggle.
-  if ((prevStars >= stars) && (prevStars != 2 || stars != 1)) {
-    ss.before = ss.before.replace(re("[*]{" + stars + "}$", ""), "");
-    ss.after = ss.after.replace(re("^[*]{" + stars + "}", ""), "");
-  } else if (!ss.text && starsAfter) {
-    // It's not really clear why this code is necessary.  It just moves
-    // some arbitrary stuff around.
-    ss.after = ss.after.replace(/^([*_]*)/, "");
-    ss.before = ss.before.replace(/(\s?)$/, "");
-    var whitespace = re.$1;
-    ss.before = ss.before + starsAfter + whitespace;
-  } else {
-    // In most cases, if you don't have any selected text and click the button
-    // you'll get a selected, marked up region with the default text inserted.
-    if (!ss.text && !starsAfter) {
-      ss.text = filler;
-    }
-    // Add the true markup.
-    var markup = stars <= 1 ? "*" : "**"; // shouldn't the test be = ?
-    ss.before = ss.before + markup;
-    ss.after = markup + ss.after;
-  }
-
-  ss.selectionSet();
-}
-
-meeCommands.list = function ( ss, isNumberedList ) {
-  // These are identical except at the very beginning and end.
-  // Should probably use the regex extension function to make this clearer.
-  var previousItemsRegex = /(\n|^)(([ ]{0,3}([*+-]|\d+[.])[ \t]+.*)(\n.+|\n{2,}([*+-].*|\d+[.])[ \t]+.*|\n{2,}[ \t]+\S.*)*)\n*$/;
-  var nextItemsRegex = /^\n*(([ ]{0,3}([*+-]|\d+[.])[ \t]+.*)(\n.+|\n{2,}([*+-].*|\d+[.])[ \t]+.*|\n{2,}[ \t]+\S.*)*)\n*/;
-  // The default bullet is a dash but others are possible.
-  // This has nothing to do with the particular HTML bullet,
-  // it's just a markdown bullet.
-  var bullet = "-";
-  // The number in a numbered list.
-  var num = 1;
-  // Get the item prefix - e.g. " 1. " for a numbered list, " - " for a bulleted list.
-  var getItemPrefix = function () {
-    var prefix;
-    if (isNumberedList) {
-      prefix = " " + num + ". ";
-      num++;
+      return wholeMatch;
+    };
+    ss.before = ss.before.replace(regex, getLink);
+    if (linkDef) {
+      addDefNumber(linkDef);
     } else {
-      prefix = " " + bullet + " ";
+      ss.text = ss.text.replace(regex, getLink);
     }
-    return prefix;
+    var refOut = refNumber;
+    ss.after = ss.after.replace(regex, getLink);
+    if (ss.after) {
+      ss.after = ss.after.replace(/\n*$/, "");
+    }
+    if (!ss.after) {
+      ss.text = ss.text.replace(/\n*$/, "");
+    }
+    ss.after += "\n\n" + defs;
+    return refOut;
   };
-  // Fixes the prefixes of the other list items.
-  var getPrefixedItem = function (itemText) {
-    // The numbering flag is unset when called by autoindent.
-    if (isNumberedList === undefined) {
-      isNumberedList = /^\s*\d/.test(itemText);
-    }
-    // Renumber/bullet the list element.
-    itemText = itemText.replace(/^[ ]{0,3}([*+-]|\d+[.])\s/gm,
 
-    function (_) {
-      return getItemPrefix();
+  meeCommands.stripLinkDefs = function ( text, defsToAdd ) {
+    text = text.replace(/^[ ]{0,3}\[(\d+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|$)/gm,
+    function (totalMatch, id, link, newlines, title) {
+      defsToAdd[id] = totalMatch.replace(/\s*$/, "");
+      if (newlines) {
+        // Strip the title and return that separately.
+        defsToAdd[id] = totalMatch.replace(/["(](.+?)[")]$/, "");
+        return newlines + title;
+      }
+      return "";
     });
-    return itemText;
-  };
-  ss.findTags(/(\n|^)*[ ]{0,3}([*+-]|\d+[.])\s+/, null);
-  if (ss.before && !/\n$/.test(ss.before) && !/^\n/.test(ss.startTag)) {
-    ss.before += ss.startTag;
-    ss.startTag = "";
-  }
-  if (ss.startTag) {
-    var hasDigits = /\d+[.]/.test(ss.startTag);
-    ss.startTag = "";
-    ss.text = ss.text.replace(/\n[ ]{4}/g, "\n");
-    ss.unwrap();
-    ss.skipLines();
-    if (hasDigits) {
-      // Have to renumber the bullet points if this is a numbered list.
-      ss.after = ss.after.replace(nextItemsRegex, getPrefixedItem);
-    }
-    if (isNumberedList == hasDigits) {
-      return;
-    }
-  }
-  var nLinesUp = 1;
-  ss.before = ss.before.replace(previousItemsRegex,
-
-  function (itemText) {
-    if (/^\s*([*+-])/.test(itemText)) {
-      bullet = re.$1;
-    }
-    nLinesUp = /[^\n]\n\n[^\n]/.test(itemText) ? 1 : 0;
-    return getPrefixedItem(itemText);
-  });
-  if (!ss.text) {
-    ss.text = "List item";
-  }
-  var prefix = getItemPrefix();
-  var nLinesDown = 1;
-  ss.after = ss.after.replace(nextItemsRegex,
-
-  function (itemText) {
-    nLinesDown = /[^\n]\n\n[^\n]/.test(itemText) ? 1 : 0;
-    return getPrefixedItem(itemText);
-  });
-  ss.trimWhitespace(true);
-  ss.skipLines(nLinesUp, nLinesDown, true);
-  ss.startTag = prefix;
-  var spaces = prefix.replace(/./g, " ");
-  ss.wrap(SETTINGS.lineLength - spaces.length);
-  ss.text = ss.text.replace(/\n/g, "\n" + spaces);
-
-  ss.selectionSet();
-};
-
-meeCommands.blockquote = function ( ss ) {
-  ss.text = ss.text.replace(/^(\n*)([^\r]+?)(\n*)$/,
-
-  function (totalMatch, newlinesBefore, text, newlinesAfter) {
-    ss.before += newlinesBefore;
-    ss.after = newlinesAfter + ss.after;
     return text;
-  });
-  ss.before = ss.before.replace(/(>[ \t]*)$/,
-
-  function (totalMatch, blankLine) {
-    ss.text = blankLine + ss.text;
-    return "";
-  });
-  ss.text = ss.text.replace(/^(\s|>)+$/, "");
-  ss.text = ss.text || "Blockquote";
-  var match = "",
-    leftOver = "",
-    line;
-  if (ss.before) {
-    var lines = ss.before.replace(/\n$/, "").split("\n");
-    var inChain = false;
-    for (var i = 0; i < lines.length; i++) {
-      var good = false;
-      line = lines[i];
-      inChain = inChain && line.length > 0; // c) any non-empty line continues the chain
-      if (/^>/.test(line)) { // a)
-        good = true;
-        if (!inChain && line.length > 1) // c) any line that starts with ">" and has at least one more character starts the chain
-          inChain = true;
-      } else if (/^[ \t]*$/.test(line)) { // b)
-        good = true;
-      } else {
-        good = inChain; // c) the line is not empty and does not start with ">", so it matches if and only if we're in the chain
-      }
-      if (good) {
-        match += line + "\n";
-      } else {
-        leftOver += match + line;
-        match = "\n";
-      }
-    }
-    if (!/(^|\n)>/.test(match)) { // d)
-      leftOver += match;
-      match = "";
-    }
-  }
-  ss.startTag = match;
-  ss.before = leftOver;
-  // end of change
-  if (ss.after) {
-    ss.after = ss.after.replace(/^\n?/, "\n");
-  }
-  ss.after = ss.after.replace(/^(((\n|^)(\n[ \t]*)*>(.+\n)*.*)+(\n[ \t]*)*)/,
-
-  function (totalMatch) {
-    ss.endTag = totalMatch;
-    return "";
-  });
-  var replaceBlanksInTags = function (useBracket) {
-    var replacement = useBracket ? "> " : "";
-    if (ss.startTag) {
-      ss.startTag = ss.startTag.replace(/\n((>|\s)*)\n$/,
-
-      function (totalMatch, markdown) {
-        return "\n" + markdown.replace(/^[ ]{0,3}>?[ \t]*$/gm, replacement) + "\n";
-      });
-    }
-    if (ss.endTag) {
-      ss.endTag = ss.endTag.replace(/^\n((>|\s)*)\n/,
-
-      function (totalMatch, markdown) {
-        return "\n" + markdown.replace(/^[ ]{0,3}>?[ \t]*$/gm, replacement) + "\n";
-      });
-    }
   };
-  if (/^(?![ ]{0,3}>)/m.test(ss.text)) {
-    ss.wrap(SETTINGS.lineLength - 2);
-    ss.text = ss.text.replace(/^/gm, "> ");
-    replaceBlanksInTags(true);
-    ss.skipLines();
-  } else {
-    ss.text = ss.text.replace(/^[ ]{0,3}> ?/gm, "");
-    ss.unwrap();
-    replaceBlanksInTags(false);
-    if (!/^(\n|^)[ ]{0,3}>/.test(ss.text) && ss.startTag) {
-      ss.startTag = ss.startTag.replace(/\n{0,2}$/, "\n\n");
-    }
-    if (!/(\n|^)[ ]{0,3}>.*$/.test(ss.text) && ss.endTag) {
-      ss.endTag = ss.endTag.replace(/^\n{0,2}/, "\n\n");
-    }
-  }
-  if (!/\n/.test(ss.text)) {
-    ss.text = ss.text.replace(/^(> *)/,
 
-    function (wholeMatch, blanks) {
-      ss.startTag += blanks;
-      return "";
-    });
-  }
-
-  ss.selectionSet();
-};
-
-meeCommands.code = function ( ss ) {
-  var hasTextBefore = /\S[ ]*$/.test(ss.before);
-  var hasTextAfter = /^[ ]*\S/.test(ss.after);
-  // Use 'four space' markdown if the selection is on its own
-  // line or is multiline.
-  if ((!hasTextAfter && !hasTextBefore) || /\n/.test(ss.text)) {
-    ss.before = ss.before.replace(/[ ]{4}$/,
-
-    function (totalMatch) {
-      ss.text = totalMatch + ss.text;
-      return "";
-    });
-    var nLinesBack = 1;
-    var nLinesForward = 1;
-    if (/(\n|^)(\t|[ ]{4,}).*\n$/.test(ss.before)) {
-      nLinesBack = 0;
-    }
-    if (/^\n(\t|[ ]{4,})/.test(ss.after)) {
-      nLinesForward = 0;
-    }
-    ss.skipLines(nLinesBack, nLinesForward);
-    if (!ss.text) {
-      ss.startTag = "    ";
-      ss.text = "enter code here";
-    } else {
-      if (/^[ ]{0,3}\S/m.test(ss.text)) {
-        if (/\n/.test(ss.text)) ss.text = ss.text.replace(/^/gm, "    ");
-        else // if it's not multiline, do not select the four added spaces; this is more consistent with the doList behavior
-          ss.before += "    ";
-      } else {
-        ss.text = ss.text.replace(/^[ ]{4}/gm, "");
-      }
-    }
-  } else {
-    // Use backticks (`) to delimit the code block.
+  /**
+   * Combined function to assign single or double *
+   *
+   * @author JaceRider
+   *
+   * @param  {object}   ss
+   *   The selection object.
+   * @param  {integer}  stars
+   *   The number of * to use. 1 for italic, 2 for bold.
+   * @param  {string}   filler
+   *   The text to use if nothing is selected.
+   */
+  meeCommands.boldOrItalic = function ( ss, stars, filler) {
+    // Get rid of whitespace and fixup newlines.
     ss.trimWhitespace();
-    ss.findTags(/`/, /`/);
-    if (!ss.startTag && !ss.endTag) {
-      ss.startTag = ss.endTag = "`";
-      if (!ss.text) {
-        ss.text = "enter code here";
-      }
-    } else if (ss.endTag && !ss.startTag) {
-      ss.before += ss.endTag;
-      ss.endTag = "";
+    ss.text = ss.text.replace(/\n{2,}/g, "\n");
+
+    // Look for stars before and after.  Is the selection already marked up?
+    // note that these regex matches cannot fail
+    var starsBefore = /(\**$)/.exec(ss.before)[0];
+    var starsAfter = /(^\**)/.exec(ss.after)[0];
+    var prevStars = Math.min(starsBefore.length, starsAfter.length);
+
+    // Remove stars if we have to since the button acts as a toggle.
+    if ((prevStars >= stars) && (prevStars != 2 || stars != 1)) {
+      ss.before = ss.before.replace(re("[*]{" + stars + "}$", ""), "");
+      ss.after = ss.after.replace(re("^[*]{" + stars + "}", ""), "");
+    } else if (!ss.text && starsAfter) {
+      // It's not really clear why this code is necessary.  It just moves
+      // some arbitrary stuff around.
+      ss.after = ss.after.replace(/^([*_]*)/, "");
+      ss.before = ss.before.replace(/(\s?)$/, "");
+      var whitespace = re.$1;
+      ss.before = ss.before + starsAfter + whitespace;
     } else {
-      ss.startTag = ss.endTag = "";
-    }
-  }
-
-  ss.selectionSet();
-};
-
-
-meeCommands.fullscreen = function ( ss ) {
-  var element = document.getElementById( mee.editorWrapperInner.closest('.mee-wrapper').attr('id') );
-  methods.fullscreenLaunch( element );
-}
-
-
-meeCommands.heading = function ( ss ) {
-  // Remove leading/trailing whitespace and reduce internal spaces to single spaces.
-  ss.text = ss.text.replace(/\s+/g, " ");
-  ss.text = ss.text.replace(/(^\s+|\s+$)/g, "");
-  // If we clicked the button with no selected text, we just
-  // make a level 2 hash header around some default text.
-  if (!ss.text) {
-    ss.startTag = "## ";
-    ss.text = "Heading";
-    ss.endTag = " ##";
-  }else{
-    var headerLevel = 0; // The existing header level of the selected text.
-    // Remove any existing hash heading markdown and save the header level.
-    ss.findTags(/#+[ ]*/, /[ ]*#+/);
-    if (/#+/.test(ss.startTag)) {
-      headerLevel = re.lastMatch.length;
-    }
-    ss.startTag = ss.endTag = "";
-    // Try to get the current header level by looking for - and = in the line
-    // below the selection.
-    ss.findTags(null, /\s?(-+|=+)/);
-    if (/=+/.test(ss.endTag)) {
-      headerLevel = 1;
-    }
-    if (/-+/.test(ss.endTag)) {
-      headerLevel = 2;
-    }
-    // Skip to the next line so we can create the header markdown.
-    ss.startTag = ss.endTag = "";
-    ss.skipLines(1, 1);
-    // We make a level 2 header if there is no current header.
-    // If there is a header level, we substract one from the header level.
-    // If it's already a level 1 header, it's removed.
-    var headerLevelToCreate = headerLevel == 0 ? 2 : headerLevel - 1;
-    if (headerLevelToCreate > 0) {
-      // The button only creates level 1 and 2 underline headers.
-      // Why not have it iterate over hash header levels?  Wouldn't that be easier and cleaner?
-      var headerChar = headerLevelToCreate >= 2 ? "-" : "=";
-      var len = ss.text.length;
-      if (len > SETTINGS.lineLength) {
-        len = SETTINGS.lineLength;
+      // In most cases, if you don't have any selected text and click the button
+      // you'll get a selected, marked up region with the default text inserted.
+      if (!ss.text && !starsAfter) {
+        ss.text = filler;
       }
-      ss.endTag = "\n";
-      while (len--) {
-        ss.endTag += headerChar;
-      }
+      // Add the true markup.
+      var markup = stars <= 1 ? "*" : "**"; // shouldn't the test be = ?
+      ss.before = ss.before + markup;
+      ss.after = markup + ss.after;
     }
-  }
 
-  ss.selectionSet();
-};
-
-/**
- * When making a list, hitting shift-enter will put your cursor on the next line
- * at the current indent level.
- */
-meeCommands.autoIndent = function ( ss ) {
-  var fakeSelection = false;
-
-  ss.before = ss.before.replace(/(\n|^)[ ]{0,3}([*+-]|\d+[.])[ \t]*\n$/, "\n\n");
-  ss.before = ss.before.replace(/(\n|^)[ ]{0,3}>[ \t]*\n$/, "\n\n");
-  ss.before = ss.before.replace(/(\n|^)[ \t]+\n$/, "\n\n");
-  // There's no selection, end the cursor wasn't at the end of the line:
-  // The user wants to split the current list item / code line / blockquote line
-  // (for the latter it doesn't really matter) in two. Temporarily select the
-  // (rest of the) line to achieve this.
-  if (!ss.text && !/^[ \t]*(?:\n|$)/.test(ss.after)) {
-    ss.after = ss.after.replace(/^[^\n]*/, function (wholeMatch) {
-      ss.text = wholeMatch;
-      ss.selectionSet();
-      return;
-    });
-    fakeSelection = true;
-  }
-  if (/(\n|^)[ ]{0,3}([*+-]|\d+[.])[ \t]+.*\n$/.test(ss.before)) {
-    console.log('list');
-    if (meeCommands.list) {
-      meeCommands.list( ss );
-    }
-  }
-  if (/(\n|^)[ ]{0,3}>[ \t]+.*\n$/.test(ss.before)) {
-    if (meeCommands.blockquote) {
-      meeCommands.blockquote( ss );
-    }
-  }
-  if (/(\n|^)(\t|[ ]{4,}).*\n$/.test(ss.before)) {
-    if (meeCommands.code) {
-      meeCommands.code( ss );
-    }
-  }
-  if (fakeSelection) {
-    ss.after = ss.text + ss.after;
-    ss.text = "";
     ss.selectionSet();
   }
 
-};
+  meeCommands.list = function ( ss, isNumberedList ) {
+    // These are identical except at the very beginning and end.
+    // Should probably use the regex extension function to make this clearer.
+    var previousItemsRegex = /(\n|^)(([ ]{0,3}([*+-]|\d+[.])[ \t]+.*)(\n.+|\n{2,}([*+-].*|\d+[.])[ \t]+.*|\n{2,}[ \t]+\S.*)*)\n*$/;
+    var nextItemsRegex = /^\n*(([ ]{0,3}([*+-]|\d+[.])[ \t]+.*)(\n.+|\n{2,}([*+-].*|\d+[.])[ \t]+.*|\n{2,}[ \t]+\S.*)*)\n*/;
+    // The default bullet is a dash but others are possible.
+    // This has nothing to do with the particular HTML bullet,
+    // it's just a markdown bullet.
+    var bullet = "-";
+    // The number in a numbered list.
+    var num = 1;
+    // Get the item prefix - e.g. " 1. " for a numbered list, " - " for a bulleted list.
+    var getItemPrefix = function () {
+      var prefix;
+      if (isNumberedList) {
+        prefix = " " + num + ". ";
+        num++;
+      } else {
+        prefix = " " + bullet + " ";
+      }
+      return prefix;
+    };
+    // Fixes the prefixes of the other list items.
+    var getPrefixedItem = function (itemText) {
+      // The numbering flag is unset when called by autoindent.
+      if (isNumberedList === undefined) {
+        isNumberedList = /^\s*\d/.test(itemText);
+      }
+      // Renumber/bullet the list element.
+      itemText = itemText.replace(/^[ ]{0,3}([*+-]|\d+[.])\s/gm,
+
+      function (_) {
+        return getItemPrefix();
+      });
+      return itemText;
+    };
+    ss.findTags(/(\n|^)*[ ]{0,3}([*+-]|\d+[.])\s+/, null);
+    if (ss.before && !/\n$/.test(ss.before) && !/^\n/.test(ss.startTag)) {
+      ss.before += ss.startTag;
+      ss.startTag = "";
+    }
+    if (ss.startTag) {
+      var hasDigits = /\d+[.]/.test(ss.startTag);
+      ss.startTag = "";
+      ss.text = ss.text.replace(/\n[ ]{4}/g, "\n");
+      ss.unwrap();
+      ss.skipLines();
+      if (hasDigits) {
+        // Have to renumber the bullet points if this is a numbered list.
+        ss.after = ss.after.replace(nextItemsRegex, getPrefixedItem);
+      }
+      if (isNumberedList == hasDigits) {
+        return;
+      }
+    }
+    var nLinesUp = 1;
+    ss.before = ss.before.replace(previousItemsRegex,
+
+    function (itemText) {
+      if (/^\s*([*+-])/.test(itemText)) {
+        bullet = re.$1;
+      }
+      nLinesUp = /[^\n]\n\n[^\n]/.test(itemText) ? 1 : 0;
+      return getPrefixedItem(itemText);
+    });
+    if (!ss.text) {
+      ss.text = "List item";
+    }
+    var prefix = getItemPrefix();
+    var nLinesDown = 1;
+    ss.after = ss.after.replace(nextItemsRegex,
+
+    function (itemText) {
+      nLinesDown = /[^\n]\n\n[^\n]/.test(itemText) ? 1 : 0;
+      return getPrefixedItem(itemText);
+    });
+    ss.trimWhitespace(true);
+    ss.skipLines(nLinesUp, nLinesDown, true);
+    ss.startTag = prefix;
+    var spaces = prefix.replace(/./g, " ");
+    ss.wrap(SETTINGS.lineLength - spaces.length);
+    ss.text = ss.text.replace(/\n/g, "\n" + spaces);
+
+    ss.selectionSet();
+  };
+
+  meeCommands.blockquote = function ( ss ) {
+    ss.text = ss.text.replace(/^(\n*)([^\r]+?)(\n*)$/,
+
+    function (totalMatch, newlinesBefore, text, newlinesAfter) {
+      ss.before += newlinesBefore;
+      ss.after = newlinesAfter + ss.after;
+      return text;
+    });
+    ss.before = ss.before.replace(/(>[ \t]*)$/,
+
+    function (totalMatch, blankLine) {
+      ss.text = blankLine + ss.text;
+      return "";
+    });
+    ss.text = ss.text.replace(/^(\s|>)+$/, "");
+    ss.text = ss.text || "Blockquote";
+    var match = "",
+      leftOver = "",
+      line;
+    if (ss.before) {
+      var lines = ss.before.replace(/\n$/, "").split("\n");
+      var inChain = false;
+      for (var i = 0; i < lines.length; i++) {
+        var good = false;
+        line = lines[i];
+        inChain = inChain && line.length > 0; // c) any non-empty line continues the chain
+        if (/^>/.test(line)) { // a)
+          good = true;
+          if (!inChain && line.length > 1) // c) any line that starts with ">" and has at least one more character starts the chain
+            inChain = true;
+        } else if (/^[ \t]*$/.test(line)) { // b)
+          good = true;
+        } else {
+          good = inChain; // c) the line is not empty and does not start with ">", so it matches if and only if we're in the chain
+        }
+        if (good) {
+          match += line + "\n";
+        } else {
+          leftOver += match + line;
+          match = "\n";
+        }
+      }
+      if (!/(^|\n)>/.test(match)) { // d)
+        leftOver += match;
+        match = "";
+      }
+    }
+    ss.startTag = match;
+    ss.before = leftOver;
+    // end of change
+    if (ss.after) {
+      ss.after = ss.after.replace(/^\n?/, "\n");
+    }
+    ss.after = ss.after.replace(/^(((\n|^)(\n[ \t]*)*>(.+\n)*.*)+(\n[ \t]*)*)/,
+
+    function (totalMatch) {
+      ss.endTag = totalMatch;
+      return "";
+    });
+    var replaceBlanksInTags = function (useBracket) {
+      var replacement = useBracket ? "> " : "";
+      if (ss.startTag) {
+        ss.startTag = ss.startTag.replace(/\n((>|\s)*)\n$/,
+
+        function (totalMatch, markdown) {
+          return "\n" + markdown.replace(/^[ ]{0,3}>?[ \t]*$/gm, replacement) + "\n";
+        });
+      }
+      if (ss.endTag) {
+        ss.endTag = ss.endTag.replace(/^\n((>|\s)*)\n/,
+
+        function (totalMatch, markdown) {
+          return "\n" + markdown.replace(/^[ ]{0,3}>?[ \t]*$/gm, replacement) + "\n";
+        });
+      }
+    };
+    if (/^(?![ ]{0,3}>)/m.test(ss.text)) {
+      ss.wrap(SETTINGS.lineLength - 2);
+      ss.text = ss.text.replace(/^/gm, "> ");
+      replaceBlanksInTags(true);
+      ss.skipLines();
+    } else {
+      ss.text = ss.text.replace(/^[ ]{0,3}> ?/gm, "");
+      ss.unwrap();
+      replaceBlanksInTags(false);
+      if (!/^(\n|^)[ ]{0,3}>/.test(ss.text) && ss.startTag) {
+        ss.startTag = ss.startTag.replace(/\n{0,2}$/, "\n\n");
+      }
+      if (!/(\n|^)[ ]{0,3}>.*$/.test(ss.text) && ss.endTag) {
+        ss.endTag = ss.endTag.replace(/^\n{0,2}/, "\n\n");
+      }
+    }
+    if (!/\n/.test(ss.text)) {
+      ss.text = ss.text.replace(/^(> *)/,
+
+      function (wholeMatch, blanks) {
+        ss.startTag += blanks;
+        return "";
+      });
+    }
+
+    ss.selectionSet();
+  };
+
+  meeCommands.code = function ( ss ) {
+    var hasTextBefore = /\S[ ]*$/.test(ss.before);
+    var hasTextAfter = /^[ ]*\S/.test(ss.after);
+    // Use 'four space' markdown if the selection is on its own
+    // line or is multiline.
+    if ((!hasTextAfter && !hasTextBefore) || /\n/.test(ss.text)) {
+      ss.before = ss.before.replace(/[ ]{4}$/,
+
+      function (totalMatch) {
+        ss.text = totalMatch + ss.text;
+        return "";
+      });
+      var nLinesBack = 1;
+      var nLinesForward = 1;
+      if (/(\n|^)(\t|[ ]{4,}).*\n$/.test(ss.before)) {
+        nLinesBack = 0;
+      }
+      if (/^\n(\t|[ ]{4,})/.test(ss.after)) {
+        nLinesForward = 0;
+      }
+      ss.skipLines(nLinesBack, nLinesForward);
+      if (!ss.text) {
+        ss.startTag = "    ";
+        ss.text = "enter code here";
+      } else {
+        if (/^[ ]{0,3}\S/m.test(ss.text)) {
+          if (/\n/.test(ss.text)) ss.text = ss.text.replace(/^/gm, "    ");
+          else // if it's not multiline, do not select the four added spaces; this is more consistent with the doList behavior
+            ss.before += "    ";
+        } else {
+          ss.text = ss.text.replace(/^[ ]{4}/gm, "");
+        }
+      }
+    } else {
+      // Use backticks (`) to delimit the code block.
+      ss.trimWhitespace();
+      ss.findTags(/`/, /`/);
+      if (!ss.startTag && !ss.endTag) {
+        ss.startTag = ss.endTag = "`";
+        if (!ss.text) {
+          ss.text = "enter code here";
+        }
+      } else if (ss.endTag && !ss.startTag) {
+        ss.before += ss.endTag;
+        ss.endTag = "";
+      } else {
+        ss.startTag = ss.endTag = "";
+      }
+    }
+
+    ss.selectionSet();
+  };
+
+
+  meeCommands.fullscreen = function ( ss, mee ) {
+    var element = document.getElementById( mee.editorWrapperInner.closest('.mee-wrapper').attr('id') );
+    methods.fullscreenLaunch( element );
+  }
+
+
+  meeCommands.heading = function ( ss ) {
+    // Remove leading/trailing whitespace and reduce internal spaces to single spaces.
+    ss.text = ss.text.replace(/\s+/g, " ");
+    ss.text = ss.text.replace(/(^\s+|\s+$)/g, "");
+    // If we clicked the button with no selected text, we just
+    // make a level 2 hash header around some default text.
+    if (!ss.text) {
+      ss.startTag = "## ";
+      ss.text = "Heading";
+      ss.endTag = " ##";
+    }else{
+      var headerLevel = 0; // The existing header level of the selected text.
+      // Remove any existing hash heading markdown and save the header level.
+      ss.findTags(/#+[ ]*/, /[ ]*#+/);
+      if (/#+/.test(ss.startTag)) {
+        headerLevel = re.lastMatch.length;
+      }
+      ss.startTag = ss.endTag = "";
+      // Try to get the current header level by looking for - and = in the line
+      // below the selection.
+      ss.findTags(null, /\s?(-+|=+)/);
+      if (/=+/.test(ss.endTag)) {
+        headerLevel = 1;
+      }
+      if (/-+/.test(ss.endTag)) {
+        headerLevel = 2;
+      }
+      // Skip to the next line so we can create the header markdown.
+      ss.startTag = ss.endTag = "";
+      ss.skipLines(1, 1);
+      // We make a level 2 header if there is no current header.
+      // If there is a header level, we substract one from the header level.
+      // If it's already a level 1 header, it's removed.
+      var headerLevelToCreate = headerLevel == 0 ? 2 : headerLevel - 1;
+      if (headerLevelToCreate > 0) {
+        // The button only creates level 1 and 2 underline headers.
+        // Why not have it iterate over hash header levels?  Wouldn't that be easier and cleaner?
+        var headerChar = headerLevelToCreate >= 2 ? "-" : "=";
+        var len = ss.text.length;
+        if (len > SETTINGS.lineLength) {
+          len = SETTINGS.lineLength;
+        }
+        ss.endTag = "\n";
+        while (len--) {
+          ss.endTag += headerChar;
+        }
+      }
+    }
+
+    ss.selectionSet();
+  };
+
+  /**
+   * When making a list, hitting shift-enter will put your cursor on the next line
+   * at the current indent level.
+   */
+  meeCommands.autoIndent = function ( ss ) {
+    var fakeSelection = false;
+
+    ss.before = ss.before.replace(/(\n|^)[ ]{0,3}([*+-]|\d+[.])[ \t]*\n$/, "\n\n");
+    ss.before = ss.before.replace(/(\n|^)[ ]{0,3}>[ \t]*\n$/, "\n\n");
+    ss.before = ss.before.replace(/(\n|^)[ \t]+\n$/, "\n\n");
+    // There's no selection, end the cursor wasn't at the end of the line:
+    // The user wants to split the current list item / code line / blockquote line
+    // (for the latter it doesn't really matter) in two. Temporarily select the
+    // (rest of the) line to achieve this.
+    if (!ss.text && !/^[ \t]*(?:\n|$)/.test(ss.after)) {
+      ss.after = ss.after.replace(/^[^\n]*/, function (wholeMatch) {
+        ss.text = wholeMatch;
+        ss.selectionSet();
+        return;
+      });
+      fakeSelection = true;
+    }
+    if (/(\n|^)[ ]{0,3}([*+-]|\d+[.])[ \t]+.*\n$/.test(ss.before)) {
+      if (meeCommands.list) {
+        meeCommands.list( ss );
+      }
+    }
+    if (/(\n|^)[ ]{0,3}>[ \t]+.*\n$/.test(ss.before)) {
+      if (meeCommands.blockquote) {
+        meeCommands.blockquote( ss );
+      }
+    }
+    if (/(\n|^)(\t|[ ]{4,}).*\n$/.test(ss.before)) {
+      if (meeCommands.code) {
+        meeCommands.code( ss );
+      }
+    }
+    if (fakeSelection) {
+      ss.after = ss.text + ss.after;
+      ss.text = "";
+      ss.selectionSet();
+    }
+
+  };
 
 
 
 
 
-function meeWidget( options ){
-  // Default button options
-  this.settings = $.extend( {
-    title       : null
-  }, options);
-  // Built the widget
-  this.build();
-  return this;
-}
+  function meeWidget( options ){
+    // Default button options
+    this.settings = $.extend( {
+      title       : null
+    }, options);
+    // Built the widget
+    this.build();
+    return this;
+  }
 
-meeWidget.prototype.build = function () {
-  var self = this;
-  this.$widget = $('<div class="mee-widget"></div>').appendTo(mee.wrapper).hide();
-  this.$inner = $('<div class="mee-widget-inner"></div>').appendTo(this.$widget);
-  var header = '';
-  header += '<div class="mee-widget-header">';
-  header += '  <h3>' + this.settings.title + '</h3>';
-  header += '</div>';
-  this.$header = $(header).appendTo(this.$inner);
-  this.$close = $('<a class="close" data-dismiss="widget">&times;</a>').prependTo(this.$header).click(function( e ){
-    e.preventDefault();
-    self.hide();
-  });
-  $(document).bind('keyup.key27', function(e){
-    if (e.keyCode == 27){
+  meeWidget.prototype.build = function () {
+    var self = this;
+    this.$widget = $('<div class="mee-widget"></div>').appendTo(mee.wrapper).hide();
+    this.$inner = $('<div class="mee-widget-inner"></div>').appendTo(this.$widget);
+    var header = '';
+    header += '<div class="mee-widget-header">';
+    header += '  <h3>' + this.settings.title + '</h3>';
+    header += '</div>';
+    this.$header = $(header).appendTo(this.$inner);
+    this.$close = $('<a class="close" data-dismiss="widget">&times;</a>').prependTo(this.$header).click(function( e ){
+      e.preventDefault();
       self.hide();
-    }
-  });
-  this.$body = $('<div class="mee-widget-body" />').appendTo(this.$inner);
-  this.$footer = $('<div class="mee-widget-footer" />').appendTo(this.$inner);
-}
-
-/**
- * Add an element/markup to the widget body.
- *
- * @author JaceRider
- *
- * @param  {jQuery object / HTML markup}  element
- *   Can be either a full jQuery object or HTML enclosed by valid tags.
- */
-meeWidget.prototype.addToBody = function ( element ) {
-  if ( element instanceof jQuery ){
-    element.appendTo(this.$body);
+    });
+    $(document).bind('keyup.key27', function(e){
+      if (e.keyCode == 27){
+        self.hide();
+      }
+    });
+    this.$body = $('<div class="mee-widget-body" />').appendTo(this.$inner);
+    this.$footer = $('<div class="mee-widget-footer" />').appendTo(this.$inner);
   }
-  else if (typeof element === 'string'){
-    this.$body.append( element );
-  }
-  return this;
-}
 
-/**
- * Adds a submit button to the widget
- *
- * @author JaceRider
- *
- * @param  {string}   label
- *   The label for the submit link.
- * @param  {function} callback
- *   A function to fire when the button has been clicked.
- */
-meeWidget.prototype.addSubmit = function ( label, callback ){
-  var self = this;
-  label = label ? label : 'OK';
-  this.$submit = $('<a href="#" class="btn btn-primary">' + label + '</a>').appendTo(this.$footer).click(function( e ){
-    e.preventDefault();
-    if(jQuery.isFunction(callback)) callback( self );
-    self.hide();
-  });
-  // For some reason, using jquery hotkeys causes the return button callback
-  // to not be fired.
-  $(document).bind('keypress.key13', function(e){
-    if (e.keyCode == 13){
-      self.$submit.click();
+  /**
+   * Add an element/markup to the widget body.
+   *
+   * @author JaceRider
+   *
+   * @param  {jQuery object / HTML markup}  element
+   *   Can be either a full jQuery object or HTML enclosed by valid tags.
+   */
+  meeWidget.prototype.addToBody = function ( element ) {
+    if ( element instanceof jQuery ){
+      element.appendTo(this.$body);
     }
-  });
-  return this;
-}
+    else if (typeof element === 'string'){
+      this.$body.append( element );
+    }
+    return this;
+  }
+
+  /**
+   * Adds a submit button to the widget
+   *
+   * @author JaceRider
+   *
+   * @param  {string}   label
+   *   The label for the submit link.
+   * @param  {function} callback
+   *   A function to fire when the button has been clicked.
+   */
+  meeWidget.prototype.addSubmit = function ( label, callback ){
+    var self = this;
+    label = label ? label : 'OK';
+    this.$submit = $('<a href="#" class="btn btn-primary">' + label + '</a>').appendTo(this.$footer).click(function( e ){
+      e.preventDefault();
+      if(jQuery.isFunction(callback)) callback( self );
+      self.hide();
+    });
+    // For some reason, using jquery hotkeys causes the return button callback
+    // to not be fired.
+    $(document).bind('keypress.key13', function(e){
+      if (e.keyCode == 13){
+        self.$submit.click();
+      }
+    });
+    return this;
+  }
 
 
-/**
- * Adds a close button to the widget
- *
- * @author JaceRider
- *
- * @param  {string}   label
- *   The label for the submit link.
- * @param  {function} callback
- *   A function to fire when the button has been clicked.
- */
-meeWidget.prototype.addClose = function ( label, callback ){
-  var self = this;
-  label = label ? label : 'Close';
-  this.$close = $('<a href="#" class="btn">' + label + '</a>').appendTo(this.$footer).click(function( e ){
-    e.preventDefault();
-    if(jQuery.isFunction(callback)) callback( self );
-    self.hide();
-  });
-  return this;
-}
+  /**
+   * Adds a close button to the widget
+   *
+   * @author JaceRider
+   *
+   * @param  {string}   label
+   *   The label for the submit link.
+   * @param  {function} callback
+   *   A function to fire when the button has been clicked.
+   */
+  meeWidget.prototype.addClose = function ( label, callback ){
+    var self = this;
+    label = label ? label : 'Close';
+    this.$close = $('<a href="#" class="btn">' + label + '</a>').appendTo(this.$footer).click(function( e ){
+      e.preventDefault();
+      if(jQuery.isFunction(callback)) callback( self );
+      self.hide();
+    });
+    return this;
+  }
 
-meeWidget.prototype.show = function ( callback ) {
-  var self = this;
+  meeWidget.prototype.show = function ( callback ) {
+    var self = this;
 
-  // Hide editor
-  methods.editorHide(true, function(){
-
-  });
-
-
-    var height = self.$widget.outerHeight();
-    mee.wrapper.animate({height:height}, mee.transitionSpeed, function(){
-
-      // Trigger callback if set
-      if(jQuery.isFunction( self.onShowCallback )) self.onShowCallback( self );
+    // Hide editor
+    methods.editorHide(true, function(){
 
     });
-  self.$widget
-    .data('meeWidget', self)
-    .show().css({opacity:0}).animate({opacity:1}, mee.transitionSpeed);
+
+
+      var height = self.$widget.outerHeight();
+      mee.wrapper.animate({height:height}, mee.transitionSpeed, function(){
+
+        // Trigger callback if set
+        if(jQuery.isFunction( self.onShowCallback )) self.onShowCallback( self );
+
+      });
+    self.$widget
+      .data('meeWidget', self)
+      .show().css({opacity:0}).animate({opacity:1}, mee.transitionSpeed);
+
+  }
+
+  meeWidget.prototype.hide = function () {
+    var self = this;
+
+    // Show editor
+    methods.editorShow(true, function(){
+
+      // unbind enter key
+      $(document).unbind("keypress.key13");
+      // unbind escape key
+      $(document).unbind("keypress.key13");
+
+      // Remove the widget
+      self.$widget.remove();
+
+      // Trigger callback if set
+      if(jQuery.isFunction( self.onHideCallback )) self.onHideCallback( this );
+
+    });
+  }
+
+  meeWidget.prototype.onShowCallback = function(){}
+
+  meeWidget.prototype.onHideCallback = function(){}
+
+
+
+  methods.init( options );
 
 }
-
-meeWidget.prototype.hide = function () {
-  var self = this;
-
-  // Show editor
-  methods.editorShow(true, function(){
-
-    // unbind enter key
-    $(document).unbind("keypress.key13");
-    // unbind escape key
-    $(document).unbind("keypress.key13");
-
-    // Remove the widget
-    self.$widget.remove();
-
-    // Trigger callback if set
-    if(jQuery.isFunction( self.onHideCallback )) self.onHideCallback( this );
-
-  });
-}
-
-meeWidget.prototype.onShowCallback = function(){}
-
-meeWidget.prototype.onHideCallback = function(){}
 
 
 
