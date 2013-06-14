@@ -69,7 +69,7 @@ function mee_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
       'autogrow' => 1,
       'view' => 'default',
       'labels_show' => 1,
-      'buttons' => array(),
+      'toolbar' => array(),
     );
     $default_values = !empty($instance['settings']['mee']['settings']) ? $instance['settings']['mee']['settings'] : $defaults;
 
@@ -181,82 +181,6 @@ function mee_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
       );
     }
 
-
-
-
-
-
-
-    $mee['settings']['buttons'] = array(
-      '#type' => 'container',
-      '#tree' => TRUE,
-      '#theme' => 'mee_config_form_buttons',
-      '#attributes' => array('class'=>array('js-hide'))
-    );
-    $buttons = &$mee['settings']['buttons'];
-
-    mee_settings_buttons_order($default_values);
-
-    foreach(mee_button_groups() as $k => $label){
-      $key = 'group-'.$k;
-      $buttons[$key]['#weight'] = isset($default_values['buttons'][$key]['weight']) ? $default_values['buttons'][$key]['weight'] : 0;
-      $buttons[$key]['status'] = array(
-        '#type' => 'textfield',
-        '#default_value' => isset($default_values['buttons'][$key]['status']) ? $default_values['buttons'][$key]['status'] : $label,
-      );
-      $buttons[$key]['id'] = array(
-        '#type' => 'hidden',
-        '#value' => $key,
-        '#attributes' => array('class' => array('mee-button-id')),
-      );
-      $buttons[$key]['weight'] = array(
-        '#type' => 'weight',
-        '#default_value' => isset($default_values['buttons'][$key]['weight']) ? $default_values['buttons'][$key]['weight'] : 0,
-        '#size' => 3,
-        '#attributes' => array('class' => array('mee-button-weight')),
-        '#title-display' => 'invisible'
-      );
-      $buttons[$key]['pid'] = array(
-        '#type' => 'textfield',
-        '#default_value' => isset($default_values['buttons'][$key]['pid']) ? $default_values['buttons'][$key]['pid'] : 0,
-        '#size' => 3,
-        '#attributes' => array('class' => array('mee-button-pid')),
-      );
-    }
-
-    $plugins = mee_get_plugin('buttons');
-    foreach($plugins as $name => $p){
-      $handler = _mee_get_handler('buttons', $name);
-      $label = $p['title'];
-      if(!empty($p['mee']['icon'])) $label = '<i class="icon-'.$p['mee']['icon'].'"></i> '.$label;
-
-      $buttons[$name]['#weight'] = isset($default_values['buttons'][$name]['weight']) ? $default_values['buttons'][$name]['weight'] : 0;
-
-      $buttons[$name]['status'] = array(
-        '#type' => 'checkbox',
-        '#title' => $handler->getLabel(true),
-        '#default_value' => isset($default_values['buttons'][$name]['status']) ? $default_values['buttons'][$name]['status'] : 0,
-      );
-      $buttons[$name]['id'] = array(
-        '#type' => 'hidden',
-        '#value' => $name,
-        '#attributes' => array('class' => array('mee-button-id')),
-      );
-      $buttons[$name]['weight'] = array(
-        '#type' => 'weight',
-        '#default_value' => isset($default_values['buttons'][$name]['weight']) ? $default_values['buttons'][$name]['weight'] : 0,
-        '#size' => 3,
-        '#attributes' => array('class' => array('mee-button-weight')),
-        '#title-display' => 'invisible'
-      );
-      $buttons[$name]['pid'] = array(
-        '#type' => 'textfield',
-        '#default_value' => isset($default_values['buttons'][$name]['pid']) ? $default_values['buttons'][$name]['pid'] : 0,
-        '#size' => 3,
-        '#attributes' => array('class' => array('mee-button-pid')),
-      );
-    }
-
   }
 }
 
@@ -283,10 +207,11 @@ function mee_settings_buttons_order(&$settings){
 }
 
 function theme_mee_config_form_toolbar($vars){
+  mee_add_js();
   $output = '';
   $element = $vars['element'];
   $plugins = mee_get_plugin('buttons');
-  $defaults = $element['#defaults']['buttons'];
+  $defaults = !empty($element['#defaults']['buttons']) ? $element['#defaults']['buttons'] : array();
   $setup = array();
   foreach(mee_button_groups() as $k => $label){
     $setup[$k] = array();
