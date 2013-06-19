@@ -1,6 +1,6 @@
 name        = MEE: Markdown Epic Editor
 description = A markdown editor for Drupal using EpicEditor
-package     = Avencrest
+package     = Mee
 version     = VERSION
 core        = 7.x
 

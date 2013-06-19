@@ -31,9 +31,6 @@ function mee_theme() {
       'variables' => array('iframe' => array()),
       'template' => 'theme/mee.iframe',
     ),
-    'mee_config_form_buttons' => array(
-      'render element' => 'element'
-    ),
     'mee_config_form_toolbar' => array(
       'render element' => 'element',
       'file' => 'mee.field.inc',
@@ -177,6 +174,12 @@ function mee_preprocess_html(&$vars) {
  */
 function mee_add_js($settings = NULL) {
   drupal_add_library('mee', 'mee', FALSE);
+  $plugins = mee_get_plugin('buttons');
+  foreach($plugins as $name => $p){
+    if(!empty($p['script'])){
+      drupal_add_js(drupal_get_path('module', $p['module']).'/'.$p['script']);
+    }
+  }
   if($settings && is_array($settings)){
     drupal_add_js(array('mee' => array($settings['selector'] => $settings)), 'setting');
   }
@@ -279,48 +282,4 @@ function _mee_get_handler($type, $name) {
   }
 
   return $object_cache[$name];
-}
-
-function theme_mee_config_form_buttons($vars){
-  $output = '';
-  $element = $vars['element'];
-  // $table_id = 'mee-button-sort';
-  // drupal_add_tabledrag($table_id, 'match', 'parent', 'mee-button-pid', 'mee-button-pid', 'mee-button-id', TRUE);
-  // drupal_add_tabledrag($table_id, 'order', 'sibling', 'mee-button-weight', NULL, NULL, TRUE);
-
-  // $header = array(
-  //   'status' => t('Button'),
-  //   'id' => '',
-  //   'pid' => '',
-  //   //'depth' => '',
-  //   'weight' => t('Weight')
-  // );
-  // $rows = array();
-  // foreach (element_children($element) as $key) {
-  //   $row = array();
-  //   $row['class'] = array('draggable');
-  //   $row['data'] = array();
-  //   $type = substr($key, 0, 5);
-  //   if($type === 'group'){
-  //     $row['class'][] = 'tabledrag-root';
-  //   }else{
-  //     $row['class'][] = 'tabledrag-leaf';
-  //   }
-  //   $indent = theme('indentation', array(
-  //     'size' => !empty($element[$key]['pid']['#value']) ? 1 : 0
-  //   ));
-  //   foreach ($header as $fieldname => $title) {
-  //     $row['data'][] = $indent.drupal_render($element[$key][$fieldname]);
-  //   }
-  //   $rows[] = $row;
-  // }
-
-  // $output .= theme('table', array(
-  //   'header' => $header,
-  //   'rows' => $rows,
-  //   'attributes' => array('id' => $table_id), // needed for table dragging
-  // ));
-
-  $output .= drupal_render_children($element);
-  return $output;
 }
