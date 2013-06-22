@@ -26,21 +26,26 @@ methods.init = function ( options ) {
   new meeObject( this, options ).init();
 }
 
-methods.toolbarButtonClick = function ( e, buttonSettings, meeObject ) {
+methods.toolbarButtonClick = function ( e ) {
   e.preventDefault();
-  meeObject.mee.editor.focus();
-  meeObject.mee.toolbarButtonActive = $(e.currentTarget);
 
-  if($.isFunction(meeCommands[buttonSettings.command])){
-    var ss = new meeSelection( meeObject );
+  // Set focus
+  meeActive.meeObject.mee.editor.focus();
+
+  // Set active objects
+  meeActive.meeButton = $(e.currentTarget);
+  meeActive.meeButtonSettings = $(e.currentTarget).data('mee');
+  meeActive.meeSelection = new meeSelection();
+
+  if($.isFunction(meeCommands[meeActive.meeButtonSettings.command])){
     // Send to command
-    meeCommands[buttonSettings.command]( ss, buttonSettings, meeObject );
+    meeCommands[meeActive.meeButtonSettings.command]();
     // Update after command runs
-    meeObject.previewUpdate();
+    meeActive.meeObject.previewUpdate();
     // Trigger resize
-    if(meeObject.settings.autogrow == true) meeObject.mee.editor.trigger('autosize');
+    if(meeActive.meeObject.settings.autogrow == true) meeActive.meeObject.mee.editor.trigger('autosize');
   }else{
-    meeCommands.notFound( buttonSettings.id );
+    meeCommands.notFound( buttonSettings.command );
   }
 }
 
@@ -115,13 +120,13 @@ methods.fullscreenToggle = function ( e ) {
   var element = self.meeObject.mee.editorWrapperInner.closest('.mee-wrapper');
   if(element.hasClass('mee-full')){
     settingsGlobal.fullscreenActive = false;
-    self.meeObject.mee.toolbarButtonActive.removeClass('btn-danger').addClass('btn-inverse');
+    meeActive.meeButton.removeClass('btn-danger').addClass('btn-inverse');
     element.removeClass('mee-full');
     // Update preview right when full screen is closed
     self.meeObject.previewUpdate();
   }else{
     settingsGlobal.fullscreenActive = true;
-    self.meeObject.mee.toolbarButtonActive.removeClass('btn-inverse').addClass('btn-danger');
+    meeActive.meeButton.removeClass('btn-inverse').addClass('btn-danger');
     element.addClass('mee-full');
   }
 }
@@ -156,6 +161,19 @@ var settingsGlobal = {
 };
 
 /******************************************************************************
+ * GLOBAL Active Elements
+ */
+
+var meeActive = {
+    meeObject           : {}
+  , meeSelection        : {}
+  , meeButton           : {}
+  , meeButtonSettings   : {}
+  , meeWidget           : {}
+};
+$.fn.meeActive = meeActive;
+
+/******************************************************************************
  * INSTANCE Methods/Functions
  */
 var meeObject = function ( selector, options ) {
@@ -171,7 +189,6 @@ var meeObject = function ( selector, options ) {
     , editor              : {}
     , toolbar             : {}
     , toolbarGroups       : {}
-    , toolbarButtonActive : {}
     , preview             : {}
     , previewIframe       : {}
   };
@@ -286,8 +303,8 @@ meeObject.prototype.editorBuild = function () {
 
   self.mee.editor.bind('keyup', 'shift+return', function( e ){
     e.preventDefault();
-    var ss = new meeSelection( self );
-    meeCommands.autoIndent( ss );
+    meeActive.meeSelection = new meeSelection();
+    meeCommands.autoIndent();
   });
 
   // Build toolbar
@@ -315,6 +332,9 @@ meeObject.prototype.editorUpdate = function () {
   var self = this;
   var value = methods.markdownConvert( self.mee.editor.val() );
   self.mee.preview.html(value);
+  for(i in meeReplace.finish){
+    text = meeReplace.finish[i]( self );
+  }
   if(self.settings.autogrow == true) self.mee.editor.trigger('autosize');
 }
 
@@ -363,17 +383,17 @@ meeObject.prototype.toolbarBuildButtons = function () {
   for(i in self.settings.buttons){
     // Default button options
     var settings = $.extend( {
-      'label'     : null, // The button text
-      'tip'       : null, // The information set in the tooltip
-      'key'       : null, // The shortcut key combo
-      'group'     : null, // The button group
-      'command'   : i,  // By default, the command is the id
-      'id'        : i     // The button unique key
+        'id'        : i     // The button unique key
+      , 'command'   : i     // By default, the command is the id
+      , 'label'     : null  // The button text
+      , 'tip'       : null  // The information set in the tooltip
+      , 'key'       : null  // The shortcut key combo
+      , 'group'     : null  // The button group
+      , 'data'      : {}    // Any additional information that needs to be passed to the button command
     }, self.settings.buttons[i]);
-
     // If no group set or does not exist, reset to 0
     var group = settings.group ? ( self.mee.toolbarGroups[settings.group] ? settings.group : 0 ) : 0;
-    var button = $('<button class="btn btn-mini btn-inverse" title="' + settings.tip + '" id="mee-' + i + '">' + settings.label + '</button>')
+    var button = $('<a class="btn btn-mini btn-inverse" title="' + settings.tip + '" id="mee-' + i + '">' + settings.label + '</a>')
       .data('mee',settings)
       .appendTo(self.mee.toolbarGroups[group]);
 
@@ -387,15 +407,15 @@ meeObject.prototype.toolbarBuildButtons = function () {
       self.mee.editor.data(settings.key, button);
       self.mee.editor.bind('keydown', settings.key, function( e ){
         e.currentTarget = $(e.currentTarget).data(e.data);
-        var settings = $(e.currentTarget).data('mee');
-        methods.toolbarButtonClick( e, settings, self );
+        meeActive.meeObject = self;
+        methods.toolbarButtonClick( e );
       });
     }
 
     // Set up click event
     button.bind('click', function( e ){
-      var settings = $(e.currentTarget).data('mee');
-      methods.toolbarButtonClick( e, settings, self );
+      meeActive.meeObject = self;
+      methods.toolbarButtonClick( e );
     });
   }
 }
@@ -458,11 +478,12 @@ function meeWidget ( meeObject ) {
   self.meeObject = meeObject;
   self.build();
 }
+$.fn.meeWidget = meeWidget;
 
 meeWidget.prototype.build = function () {
   var self = this;
   self.widgetCover = $('<div class="mee-widget-cover" />').appendTo( self.meeObject.mee.wrapper );
-  self.widget = $('<div class="mee-widget"><div class="mee-widget-inner"></div></div>').appendTo( self.meeObject.mee.wrapper );
+  self.widget = $('<div id="mee-widget" class="mee-widget"><div class="mee-widget-inner"></div></div>').appendTo( self.meeObject.mee.wrapper );
   self.widgetInner = self.widget.find('.mee-widget-inner');
   self.widgetHeader = $('<div class="mee-widget-header" />').appendTo(self.widgetInner);
   self.widgetClose = $('<a class="close" data-dismiss="widget">&times;</a>').click(function( e ){
@@ -496,6 +517,7 @@ meeWidget.prototype.hide = function () {
   $('html').bind("transitionend", function(){
     self.widget.remove();
     self.widgetCover.remove();
+    //delete meeActive.meeWidget;
   }).removeClass('mee-widget-active');
   // Trigger callback if set
   if(jQuery.isFunction( self.onHideCallback )) self.onHideCallback( this );
@@ -558,6 +580,7 @@ meeWidget.prototype.onHideCallback = function(){}
 var meeReplace = {};
 meeReplace.before = {};
 meeReplace.after = {};
+meeReplace.finish = {};
 $.fn.meeReplace = meeReplace;
 
 
@@ -574,45 +597,50 @@ meeCommands.notFound = function ( command ) {
   }
 }
 
-meeCommands.bold = function ( ss ) {
-  meeCommands.boldOrItalic( ss, 2, 'strong text' );
+meeCommands.bold = function () {
+  meeCommands.boldOrItalic( 2, 'strong text' );
 }
 
-meeCommands.italic = function ( ss ) {
-  meeCommands.boldOrItalic( ss, 1, 'emphasized text' );
+meeCommands.italic = function () {
+  meeCommands.boldOrItalic( 1, 'emphasized text' );
 }
 
-meeCommands.link = function ( ss, buttonSettings, meeObject ) {
-  meeCommands.linkOrImage( ss, false, buttonSettings, meeObject );
+meeCommands.link = function () {
+  meeCommands.linkOrImage( false );
 }
 
-meeCommands.image = function ( ss, buttonSettings, meeObject ) {
-  meeCommands.linkOrImage( ss, true, buttonSettings, meeObject );
+meeCommands.image = function () {
+  meeCommands.linkOrImage( true );
 }
 
-meeCommands.ul = function ( ss ) {
-  meeCommands.list(ss, false);
+meeCommands.ul = function () {
+  meeCommands.list( false );
 }
 
-meeCommands.ol = function ( ss ) {
-  meeCommands.list(ss, true);
+meeCommands.ol = function () {
+  meeCommands.list( true );
 }
 
-meeCommands.rule = function ( ss ) {
+meeCommands.rule = function () {
+  var ss = meeActive.meeSelection;
   ss.startTag = "----------\n";
   ss.text = "";
   ss.skipLines(2, 1, true);
   ss.selectionSet();
 }
 
-meeCommands.linkOrImage = function ( ss, isImage, buttonSettings, meeObject ) {
+meeCommands.linkOrImage = function ( isImage ) {
+  var ss = meeActive.meeSelection;
+  var buttonSettings = meeActive.meeButtonSettings;
+  var meeObject = meeActive.meeObject;
+
   ss.trimWhitespace();
   ss.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
   var background;
   if (ss.endTag.length > 1 && ss.startTag.length > 0) {
     ss.startTag = ss.startTag.replace(/!?\[/, "");
     ss.endTag = "";
-    this.addLinkDef(ss, null);
+    this.addLinkDef( null );
     ss.selectionSet();
   } else {
     // We're moving start and end tag back into the selection, since (as we're in the else block) we're not
@@ -621,7 +649,7 @@ meeCommands.linkOrImage = function ( ss, isImage, buttonSettings, meeObject ) {
     ss.text = ss.startTag + ss.text + ss.endTag;
     ss.startTag = ss.endTag = "";
     if (/\n\n/.test(ss.text)) {
-      this.addLinkDef(ss, null);
+      this.addLinkDef( null);
       return;
     }
     var that = this;
@@ -631,7 +659,7 @@ meeCommands.linkOrImage = function ( ss, isImage, buttonSettings, meeObject ) {
       if (link !== null) {
         ss.text = (" " + ss.text).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
         var linkDef = " [999]: " + properlyEncoded(link);
-        var num = that.addLinkDef(ss, linkDef);
+        var num = that.addLinkDef( linkDef );
         ss.startTag = isImage ? "![" : "[";
         ss.endTag = "][" + num + "]";
         if (!ss.text) {
@@ -656,7 +684,7 @@ meeCommands.linkOrImage = function ( ss, isImage, buttonSettings, meeObject ) {
       value = settingsGlobal.linkDefaultText;
     }
 
-    var widget = new meeWidget( meeObject )
+    var widget = meeActive.meeWidget = new meeWidget( meeObject )
       .setTitle( buttonSettings.label + ' ' )
       .setTitle( title )
       .setContent( info );
@@ -714,7 +742,8 @@ function properlyEncoded(linkdef) {
   });
 }
 
-meeCommands.addLinkDef = function ( ss, linkDef ) {
+meeCommands.addLinkDef = function ( linkDef ) {
+  var ss = meeActive.meeSelection;
   var refNumber = 0; // The current reference number
   var defsToAdd = {}; //
   // Start with a clean slate by removing all previous link definitions.
@@ -785,7 +814,9 @@ meeCommands.stripLinkDefs = function ( text, defsToAdd ) {
  * @param  {string}   filler
  *   The text to use if nothing is selected.
  */
-meeCommands.boldOrItalic = function ( ss, stars, filler) {
+meeCommands.boldOrItalic = function ( stars, filler) {
+  var ss = meeActive.meeSelection;
+
   // Get rid of whitespace and fixup newlines.
   ss.trimWhitespace();
   ss.text = ss.text.replace(/\n{2,}/g, "\n");
@@ -822,7 +853,8 @@ meeCommands.boldOrItalic = function ( ss, stars, filler) {
   ss.selectionSet();
 }
 
-meeCommands.list = function ( ss, isNumberedList ) {
+meeCommands.list = function ( isNumberedList ) {
+  var ss = meeActive.meeSelection;
   // These are identical except at the very beginning and end.
   // Should probably use the regex extension function to make this clearer.
   var previousItemsRegex = /(\n|^)(([ ]{0,3}([*+-]|\d+[.])[ \t]+.*)(\n.+|\n{2,}([*+-].*|\d+[.])[ \t]+.*|\n{2,}[ \t]+\S.*)*)\n*$/;
@@ -908,7 +940,8 @@ meeCommands.list = function ( ss, isNumberedList ) {
   ss.selectionSet();
 };
 
-meeCommands.blockquote = function ( ss ) {
+meeCommands.blockquote = function () {
+  var ss = meeActive.meeSelection;
   ss.text = ss.text.replace(/^(\n*)([^\r]+?)(\n*)$/,
 
   function (totalMatch, newlinesBefore, text, newlinesAfter) {
@@ -1012,7 +1045,8 @@ meeCommands.blockquote = function ( ss ) {
   ss.selectionSet();
 };
 
-meeCommands.code = function ( ss ) {
+meeCommands.code = function () {
+  var ss = meeActive.meeSelection;
   var hasTextBefore = /\S[ ]*$/.test(ss.before);
   var hasTextAfter = /^[ ]*\S/.test(ss.after);
   // Use 'four space' markdown if the selection is on its own
@@ -1066,7 +1100,10 @@ meeCommands.code = function ( ss ) {
 };
 
 
-meeCommands.fullscreen = function ( ss, buttonSettings, meeObject  ) {
+meeCommands.fullscreen = function () {
+  var ss = meeActive.meeSelection;
+  var buttonSettings = meeActive.meeButtonSettings;
+  var meeObject = meeActive.meeObject;
   var element = document.getElementById( meeObject.mee.editorWrapperInner.closest('.mee-wrapper').attr('id') );
   if(settingsGlobal.fullscreenActive){
     methods.fullscreenCancel();
@@ -1076,7 +1113,8 @@ meeCommands.fullscreen = function ( ss, buttonSettings, meeObject  ) {
 }
 
 
-meeCommands.heading = function ( ss ) {
+meeCommands.heading = function () {
+  var ss = meeActive.meeSelection;
   // Remove leading/trailing whitespace and reduce internal spaces to single spaces.
   ss.text = ss.text.replace(/\s+/g, " ");
   ss.text = ss.text.replace(/(^\s+|\s+$)/g, "");
@@ -1132,7 +1170,8 @@ meeCommands.heading = function ( ss ) {
  * When making a list, hitting shift-enter will put your cursor on the next line
  * at the current indent level.
  */
-meeCommands.autoIndent = function ( ss ) {
+meeCommands.autoIndent = function () {
+  var ss = meeActive.meeSelection;
   var fakeSelection = false;
 
   ss.before = ss.before.replace(/(\n|^)[ ]{0,3}([*+-]|\d+[.])[ \t]*\n$/, "\n\n");
@@ -1152,17 +1191,17 @@ meeCommands.autoIndent = function ( ss ) {
   }
   if (/(\n|^)[ ]{0,3}([*+-]|\d+[.])[ \t]+.*\n$/.test(ss.before)) {
     if (meeCommands.list) {
-      meeCommands.list( ss );
+      meeCommands.list();
     }
   }
   if (/(\n|^)[ ]{0,3}>[ \t]+.*\n$/.test(ss.before)) {
     if (meeCommands.blockquote) {
-      meeCommands.blockquote( ss );
+      meeCommands.blockquote();
     }
   }
   if (/(\n|^)(\t|[ ]{4,}).*\n$/.test(ss.before)) {
     if (meeCommands.code) {
-      meeCommands.code( ss );
+      meeCommands.code();
     }
   }
   if (fakeSelection) {
@@ -1179,20 +1218,17 @@ meeCommands.autoIndent = function ( ss ) {
  * GLOBAL Selection
  */
 
-function meeSelection( meeObject ){
-  this.meeObject = meeObject;
-  this.mee = meeObject.mee;
-  this.settings = meeObject.settings;
+function meeSelection(){
   this.selectionGet();
 }
 
 meeSelection.prototype.selectionGet = function () {
   // Get selection
-  var ss = this.mee.editor.getSelection();
+  var ss = meeActive.meeObject.mee.editor.getSelection();
   // Merge with self
   $.extend(this, ss);
   // Current content
-  this.content = this.mee.editor.val();
+  this.content = meeActive.meeObject.mee.editor.val();
   // Set some additional helpful information
   this.before = this.content.slice(0, ss.start);
   this.after = this.content.slice(ss.end);
@@ -1203,16 +1239,16 @@ meeSelection.prototype.selectionGet = function () {
 }
 
 meeSelection.prototype.selectionSet = function () {
-  this.mee.editor.focus();
+  meeActive.meeObject.mee.editor.focus();
   this.before = this.before + this.startTag;
   this.after = this.endTag + this.after;
   this.start = this.before.length;
   this.end = this.before.length + this.text.length;
   this.text = this.before + this.text + this.after;
   // Update editor
-  this.mee.editor.val(this.text).setSelection(this.start, this.end);
+  meeActive.meeObject.mee.editor.focus().val(this.text).setSelection(this.start, this.end);
   // Refresh preview
-  this.meeObject.previewUpdate();
+  meeActive.meeObject.previewUpdate();
 }
 
 // startRegex: a regular expression to find the start tag
@@ -1689,8 +1725,8 @@ $.fn.autosize = function (options) {
         }
         height += boxOffset;
         ta.style.overflowY = preview.style.overflowY = overflow || hidden;
-        if((previewContent.offsetHeight - 20) > height){
-          height = previewContent.offsetHeight - 20;
+        if((previewContent.offsetHeight) > height){
+          height = previewContent.offsetHeight;
         }
         if (original !== height) {
           ta.style.height = height + 'px';

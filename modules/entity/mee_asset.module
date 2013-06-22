@@ -1,0 +1,559 @@
+<?php
+
+/**
+ * @file
+ * Module for the MeeAsset Entity - a starting point to create your own Entity
+ * and associated administration interface
+ */
+
+/**
+* Implements hook_ctools_plugin_directory().
+*/
+function mee_asset_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'mee') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_menu
+ *
+ * @author JaceRider
+ */
+function mee_asset_menu(){
+  $items['asset/browser/%'] = array(
+    'page callback' => 'mee_asset_browser',
+    'page arguments' => array(2),
+    'access callback' => 'mee_asset_access',
+    'access arguments' => array('view', 2),
+    'file' => 'mee_asset.page.inc',
+    //'delivery callback' => 'ajax_deliver',
+    'type' => MENU_CALLBACK
+  );
+  $items['asset/view/%/%'] = array(
+    'page callback' => 'mee_asset_view',
+    'page arguments' => array(2,3),
+    'access callback' => 'mee_asset_access',
+    'access arguments' => array('view', 2),
+    'file' => 'mee_asset.page.inc',
+    //'delivery callback' => 'ajax_deliver',
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_custom_theme.
+ */
+function mee_asset_custom_theme() {
+  if (arg(0) == 'asset' && arg(1) == 'browser' && !empty($_POST['ajax_page_state']['theme'])) {
+    $themes = list_themes();
+    if(!empty($themes[$_POST['ajax_page_state']['theme']])) return $_POST['ajax_page_state']['theme'];
+  }
+  if (arg(0) == 'asset' && arg(1) == 'view' && !empty($_POST['ajax_page_state']['theme'])) {
+    $themes = list_themes();
+    if(!empty($themes[$_POST['ajax_page_state']['theme']])) return $_POST['ajax_page_state']['theme'];
+  }
+}
+
+function mee_asset_ajax_command_asset_insert($selector, $html, $settings = NULL) {
+  return array(
+    'command' => 'assetInsert',
+    'method' => 'html',
+    'selector' => $selector,
+    'data' => $html,
+    'settings' => $settings,
+  );
+}
+
+/**
+ * Implements hook_mee_buttons_alter.
+ *
+ * We need to turn our one asset button into multiple buttons before it hits
+ * the editor.
+ */
+function mee_asset_mee_buttons_alter(&$buttons){
+  if(!empty($buttons['asset']) && @is_array($buttons['asset']['buttons'])){
+    $temp = $buttons['asset'];
+    unset($temp['buttons']);
+    foreach($buttons['asset']['buttons'] as $button_id => $data){
+      $buttons[$button_id] = $temp + $data;
+    }
+    unset($buttons['asset']);
+  }
+}
+
+/**
+ * Implement hook_entity_info().
+ *
+ * We define two entities here - the actual entity that will hold our domain
+ * specific information and an entity that holds information about the different
+ * types of entities. See here: http://drupal.org/node/977380 for a discussion on this
+ * choice.
+ */
+function mee_asset_entity_info() {
+  $return['mee_asset'] = array(
+    'label' => t('Asset'),
+    // The entity class and controller class extend the classes provided by the
+    // Entity API
+    'entity class' => 'MeeAsset',
+    'controller class' => 'MeeAssetController',
+    'base table' => 'mee_asset',
+    'fieldable' => TRUE,
+    'entity keys' => array(
+        'id' => 'mee_asset_id',
+        'bundle' => 'type',
+    ),
+    // Bundles are defined by the mee_asset types below
+    'bundles' => array(),
+    // Bundle keys tell the FieldAPI how to extract information from the bundle objects
+    'bundle keys' => array(
+      'bundle' => 'type',
+    ),
+    'label callback' => 'entity_class_label',
+    'uri callback' => 'entity_class_uri',
+    'creation callback' => 'mee_asset_create',
+    'access callback' => 'mee_asset_access',
+    'module' => 'mee_asset',
+    // The information below is used by the MeeAssetUIController (which extends the EntityDefaultUIController)
+    'admin ui' => array(
+      'path' => 'admin/content/asset',
+      'file' => 'mee_asset.admin.inc',
+      'controller class' => 'MeeAssetUIController',
+      'menu wildcard' => '%mee_asset',
+    ),
+  );
+  // The entity that holds information about the entity types
+  $return['mee_asset_type'] = array(
+    'label' => t('Asset type'),
+    'entity class' => 'MeeAssetType',
+    'controller class' => 'MeeAssetTypeController',
+    'base table' => 'mee_asset_type',
+    'fieldable' => FALSE,
+    'bundle of' => 'mee_asset',
+    'exportable' => TRUE,
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'type',
+      'label' => 'label',
+    ),
+    'access callback' => 'mee_asset_type_access',
+    'module' => 'mee_asset',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/structure/mee',
+      'file' => 'mee_asset_type.admin.inc',
+      'controller class' => 'MeeAssetTypeUIController',
+    ),
+  );
+
+  return $return;
+}
+
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * We are adding the info about the mee_asset types via a hook to avoid a recursion
+ * issue as loading the mee_asset types requires the entity info as well.
+ *
+ * @todo This needs to be improved
+ */
+function mee_asset_entity_info_alter(&$entity_info) {
+  foreach (mee_asset_get_types() as $type => $info) {
+    $entity_info['mee_asset']['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path' => 'admin/structure/mee/manage/%mee_asset_type',
+        'real path' => 'admin/structure/mee/manage/' . $type,
+        'bundle argument' => 4,
+        'access arguments' => array('administer mee_asset types'),
+      ),
+    );
+  }
+}
+
+
+/**
+ * Implements hook_permission().
+ */
+function mee_asset_permission() {
+  // We set up permisssions to manage entity types, manage all entities and the
+  // permissions for each individual entity
+  $permissions = array(
+    'administer mee asset types' => array(
+      'title' => t('Administer mee asset types'),
+      'description' => t('Create and delete fields for mee asset types, and set their permissions.'),
+    ),
+    'administer mee assets' => array(
+      'title' => t('Administer mee assets'),
+      'description' => t('Edit and delete all mee assets'),
+    ),
+  );
+
+  //Generate permissions per mee_asset
+  foreach (mee_asset_get_types() as $type) {
+    $type_name = check_plain($type->type);
+    $permissions += array(
+      "edit any $type_name mee asset" => array(
+        'title' => t('%type_name: Edit any mee asset', array('%type_name' => $type->label)),
+      ),
+      "view any $type_name mee asset" => array(
+        'title' => t('%type_name: View any mee asset', array('%type_name' => $type->label)),
+      ),
+    );
+  }
+  return $permissions;
+}
+
+
+/**
+ * Determines whether the given user has access to a mee_asset.
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create', 'delete'
+ *   or just 'edit' (being the same as 'create' or 'update').
+ * @param $mee_asset
+ *   Optionally a mee_asset or a mee_asset type to check access for. If nothing is
+ *   given, access for all mee_assets is determined.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ * @return boolean
+ *   Whether access is allowed or not.
+ */
+function mee_asset_access($op, $mee_asset = NULL, $account = NULL) {
+  if (user_access('administer mee_assets', $account)) {
+    return TRUE;
+  }
+  if (isset($mee_asset) && $type_name = $mee_asset->type) {
+    $op = ($op == 'view') ? 'view' : 'edit';
+    if (user_access("$op any $type_name mee_asset", $account)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+
+/**
+ * Access callback for the entity API.
+ */
+function mee_asset_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer mee_asset types', $account);
+}
+
+
+/**
+ * Gets an array of all mee_asset types, keyed by the type name.
+ *
+ * @param $type_name
+ *   If set, the type with the given name is returned.
+ * @return MeeAssetType[]
+ *   Depending whether $type isset, an array of mee_asset types or a single one.
+ */
+function mee_asset_get_types($type_name = NULL) {
+  // entity_load will get the Entity controller for our mee_asset entity and call the load
+  // function of that object - we are loading entities by name here.
+  $types = entity_load_multiple_by_name('mee_asset_type', isset($type_name) ? array($type_name) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
+}
+
+
+/**
+ * Menu argument loader; Load a mee_asset type by string.
+ *
+ * @param $type
+ *   The machine-readable name of a mee_asset type to load.
+ * @return
+ *   A mee_asset type array or FALSE if $type does not exist.
+ */
+function mee_asset_type_load($type) {
+  return mee_asset_get_types($type);
+}
+
+
+/**
+ * Fetch a mee_asset object. Make sure that the wildcard you choose
+ * in the mee_asset entity definition fits the function name here.
+ *
+ * @param $mee_asset_id
+ *   Integer specifying the mee_asset id.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   A fully-loaded $mee_asset object or FALSE if it cannot be loaded.
+ *
+ * @see mee_asset_load_multiple()
+ */
+function mee_asset_load($mee_asset_id, $reset = FALSE) {
+  $mee_assets = mee_asset_load_multiple(array($mee_asset_id), array(), $reset);
+  return reset($mee_assets);
+}
+
+
+/**
+ * Load multiple mee_assets based on certain conditions.
+ *
+ * @param $mee_asset_ids
+ *   An array of mee_asset IDs.
+ * @param $conditions
+ *   An array of conditions to match against the {mee_asset} table.
+ * @param $reset
+ *   A boolean indicating that the internal cache should be reset.
+ * @return
+ *   An array of mee_asset objects, indexed by mee_asset_id.
+ *
+ * @see entity_load()
+ * @see mee_asset_load()
+ */
+function mee_asset_load_multiple($mee_asset_ids = array(), $conditions = array(), $reset = FALSE) {
+  return entity_load('mee_asset', $mee_asset_ids, $conditions, $reset);
+}
+
+
+/**
+ * Deletes a mee_asset.
+ */
+function mee_asset_delete(MeeAsset $mee_asset) {
+  $mee_asset->delete();
+}
+
+
+/**
+ * Delete multiple mee_assets.
+ *
+ * @param $mee_asset_ids
+ *   An array of mee_asset IDs.
+ */
+function mee_asset_delete_multiple(array $mee_asset_ids) {
+  entity_get_controller('mee_asset')->delete($mee_asset_ids);
+}
+
+
+/**
+ * Create a mee_asset object.
+ */
+function mee_asset_create($values = array()) {
+  return entity_get_controller('mee_asset')->create($values);
+}
+
+
+/**
+ * Saves a mee_asset to the database.
+ *
+ * @param $mee_asset
+ *   The mee_asset object.
+ */
+function mee_asset_save(MeeAsset $mee_asset) {
+  return $mee_asset->save();
+}
+
+
+/**
+ * Saves a mee_asset type to the db.
+ */
+function mee_asset_type_save(MeeAssetType $type) {
+  $type->save();
+}
+
+
+/**
+ * Deletes a mee_asset type from the db.
+ */
+function mee_asset_type_delete(MeeAssetType $type) {
+  $type->delete();
+}
+
+
+/**
+ * URI callback for mee_assets
+ */
+function mee_asset_uri(MeeAsset $mee_asset){
+  return array(
+    'path' => 'asset/' . $mee_asset->mee_asset_id,
+  );
+}
+
+
+/**
+ * Menu title callback for showing individual entities
+ */
+function mee_asset_page_title(MeeAsset $mee_asset){
+  return $mee_asset->name;
+}
+
+
+/**
+ * Sets up content to show an individual mee_asset
+ * @todo - get rid of drupal_set_title();
+ */
+function mee_asset_page_view($mee_asset, $view_mode = 'full') {
+  $controller = entity_get_controller('mee_asset');
+  $content = $controller->view(array($mee_asset->mee_asset_id => $mee_asset));
+  drupal_set_title($mee_asset->name);
+  return $content;
+}
+
+
+/**
+ * Implements hook_views_api().
+ */
+function mee_asset_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'mee_asset') . '/views',
+  );
+}
+
+
+/**
+ * Implement hook_theme().
+ */
+function mee_asset_theme() {
+  return array(
+    'mee_asset_add_list' => array(
+      'variables' => array('content' => array()),
+      'file' => 'mee_asset.admin.inc',
+    ),
+    'mee_asset' => array(
+      'render element' => 'elements',
+      'template' => 'mee-asset',
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function mee_asset_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Add action link 'admin/structure/mee/add' on 'admin/structure/mee'.
+  if ($root_path == 'admin/content/asset') {
+    $item = menu_get_item('admin/content/asset/add');
+    if ($item['access']) {
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+
+
+/**
+ * The class used for mee_asset entities
+ */
+class MeeAsset extends Entity {
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'mee_asset');
+  }
+
+  protected function defaultLabel() {
+    return $this->name;
+  }
+
+  protected function defaultUri() {
+    return array('path' => 'mee/' . $this->mee_asset_id);
+  }
+
+
+}
+
+
+/**
+ * The class used for mee_asset type entities
+ */
+class MeeAssetType extends Entity {
+
+  public $type;
+  public $label;
+
+  public function __construct($values = array()) {
+    parent::__construct($values, 'mee_asset_type');
+  }
+
+}
+
+
+/**
+ * The Controller for MeeAsset entities
+ */
+class MeeAssetController extends EntityAPIController {
+  public function __construct($entityType) {
+    parent::__construct($entityType);
+  }
+
+
+  /**
+   * Create a mee_asset - we first set up the values that are specific
+   * to our mee_asset schema but then also go through the EntityAPIController
+   * function.
+   *
+   * @param $type
+   *   The machine-readable type of the mee_asset.
+   *
+   * @return
+   *   A mee_asset object with all default fields initialized.
+   */
+  public function create(array $values = array()) {
+    // Add values that are specific to our MeeAsset
+    $values += array(
+      'mee_asset_id' => '',
+      'is_new' => TRUE,
+      'title' => '',
+      'created' => '',
+      'changed' => '',
+      'data' => '',
+    );
+
+    $mee_asset = parent::create($values);
+    return $mee_asset;
+  }
+
+  /**
+   * Overriding the buldContent function to add entity specific fields
+   */
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $content = parent::buildContent($entity, $view_mode, $langcode, $content);
+    $content['mee_asset_sample_data'] =  array(
+      '#markup' => theme('mee_asset_sample_data', array('mee_asset_sample_data' => check_plain($entity->data['sample_data']), 'mee_asset' => $entity)),
+    );
+
+    return $content;
+  }
+
+}
+
+
+/**
+ * The Controller for MeeAsset entities
+ */
+class MeeAssetTypeController extends EntityAPIControllerExportable {
+  public function __construct($entityType) {
+    parent::__construct($entityType);
+  }
+
+   /**
+   * Create a mee_asset type - we first set up the values that are specific
+   * to our mee_asset type schema but then also go through the EntityAPIController
+   * function.
+   *
+   * @param $type
+   *   The machine-readable type of the mee_asset.
+   *
+   * @return
+   *   A mee_asset type object with all default fields initialized.
+   */
+  public function create(array $values = array()) {
+    // Add values that are specific to our MeeAsset
+    $values += array(
+      'id' => '',
+      'is_new' => TRUE,
+      'data' => '',
+    );
+    $mee_asset_type = parent::create($values);
+    return $mee_asset_type;
+  }
+
+}

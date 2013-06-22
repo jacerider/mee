@@ -1,0 +1,10 @@
+<?php
+
+/**
+* Implements hook_ctools_plugin_directory().
+*/
+function mee_button_example_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'mee') {
+    return 'plugins/' . $plugin;
+  }
+}

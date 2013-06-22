@@ -129,16 +129,22 @@ function mee_process_widget(&$element) {
   // Buttons
   if(!empty($config['settings']['toolbar']['buttons'])){
     uasort($config['settings']['toolbar']['buttons'], 'drupal_sort_weight');
-    $plugins = mee_get_plugin('buttons');
+    $buttons = mee_buttons();
     foreach($config['settings']['toolbar']['buttons'] as $name => $c){
-      if(empty($c['status'])) continue;
-      $p = $plugins[$name];
+      if(empty($c['status']) || empty($buttons[$name])) continue;
+      $p = $buttons[$name];
       $settings['buttons'][$name] = array(
         'label' => '<i class="icon-' . $p['icon'] . '"></i>',
         'tip' => $p['tip'],
         'key' => $p['shortcut'],
         'group' => $c['group'],
       );
+      // The button command defaults to the unique $button name. This can be
+      // changed.
+      if(!empty($p['callback'])) $settings['buttons'][$name]['command'] = $p['callback'];
+      // Additional information can be attached to button settings via the
+      // "data" key. Expected to be an array.
+      if(!empty($p['data'])) $settings['buttons'][$name]['data'] = $p['data'];
       $groups_found[$c['group']] = 1;
     }
   }
@@ -174,8 +180,7 @@ function mee_preprocess_html(&$vars) {
  */
 function mee_add_js($settings = NULL) {
   drupal_add_library('mee', 'mee', FALSE);
-  $plugins = mee_get_plugin('buttons');
-  foreach($plugins as $name => $p){
+  foreach(mee_buttons() as $name => $p){
     if(!empty($p['script'])){
       drupal_add_js(drupal_get_path('module', $p['module']).'/'.$p['script']);
     }
@@ -183,6 +188,32 @@ function mee_add_js($settings = NULL) {
   if($settings && is_array($settings)){
     drupal_add_js(array('mee' => array($settings['selector'] => $settings)), 'setting');
   }
+}
+
+function mee_icons(){
+  $icons = array(
+    'mee-bold','mee-quote','mee-code','mee-fullscreen','mee-heading','mee-image','mee-italic','mee-link','mee-spinner','mee-drupal'
+  );
+  drupal_alter('mee_icons', $icons);
+  return $icons;
+}
+
+function mee_buttons(){
+  $buttons = mee_get_plugin('buttons');
+  drupal_alter('mee_buttons', $buttons);
+  return $buttons;
+}
+
+function mee_button_groups(){
+  $groups = array(
+    'font' => t('Font Style'),
+    'list' => t('List'),
+    'insert' => t('Insert Items'),
+    'other' => t('Other'),
+    'right' => t('Right'),
+  );
+  drupal_alter('mee_button_groups', $groups);
+  return $groups;
 }
 
 /**
@@ -194,8 +225,6 @@ function mee_library() {
     'title' => 'Mee',
     'version' => '0.1',
     'js' => array(
-      //$path.'/js/mee.converter.js' => array(),
-      //$path.'/js/mee.sanitizer.js' => array(),
       $path.'/js/mee.marked.js' => array(),
       $path.'/js/mee.editor.js' => array(),
       $path.'/js/mee.js' => array(),

@@ -17,15 +17,12 @@ Drupal.behaviors.mee_admin = {
   update: function (event, ui) {
     var id = $( ui.item ).attr('id').replace('mee-','');
     var group = $( ui.item ).parent().attr('id').replace('mee-group-','');
-    console.log(id);
-    console.log(group);
 
     if(group == 'disabled'){
       Drupal.behaviors.mee_admin.disable( id );
       return;
     }
-    //$( ui.item ).hide();
-    //console.log(ui);
+
     $('input[name="instance[settings][mee][settings][toolbar][buttons][' + id + '][status]"]').val(1);
     $('input[name="instance[settings][mee][settings][toolbar][buttons][' + id + '][group]"]').val(group);
     Drupal.behaviors.mee_admin.weight( group );

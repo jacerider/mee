@@ -166,6 +166,27 @@
     overflow:hidden;
     background:#fff;
   }
+
+  &.mee-widget-expanded{
+    top:0;
+    bottom:0;
+    right:0;
+    left:0;
+    width:auto;
+    height:auto;
+
+    .mee-widget-content{
+      max-height:none;
+      overflow-y:auto;
+    }
+
+    .mee-widget-footer{
+      position:absolute;
+      bottom:20px;
+      left:20px;
+      right:20px;
+    }
+  }
 }
 
 .mee-widget-cover,
@@ -182,9 +203,58 @@ html.mee-widget-active{
   .mee-widget{
     @include opacity(100);
     margin-top:-250px;
+
+    &.mee-widget-expanded{
+      margin:0;
+    }
   }
 }
 
+
+/**
+ * Assets
+ */
+.asset-browser-inner{
+  // background:#3F3F3F;
+  // @include border-radius(5px);
+  padding:10px 0;
+
+  td{
+    padding:0;
+  }
+
+  .asset{
+    position:relative;
+    padding:8px 10px;
+  }
+
+  .asset-select{
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    z-index:10;
+    text-indent:-1000px;
+    overflow:hidden;
+
+    &:focus{
+      outline: none;
+    }
+  }
+}
+
+.asset-loader{
+  background: rgba(255,255,255,.5);
+  @include border-radius(5px);
+  color:#646464;
+  text-align: center;
+  font-size: 14px;
+
+  div{
+    padding:5px;
+  }
+}
 
 
 
@@ -312,6 +382,15 @@ html.mee-widget-active{
 
     &:focus{
       @include box-shadow(none);
+    }
+  }
+}
+
+#mee-asset-type-form{
+  .form-item-data-icon{
+    .form-item{
+      display:inline;
+      padding-right:10px;
     }
   }
 }

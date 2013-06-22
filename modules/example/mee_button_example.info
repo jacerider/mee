@@ -1,0 +1,7 @@
+name        = MEE: Button Example
+description = An example button to demonstrate API.
+package     = Mee
+version     = VERSION
+core        = 7.x
+
+dependencies[] = mee

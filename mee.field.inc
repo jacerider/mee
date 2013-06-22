@@ -38,18 +38,6 @@ function mee_allowed_widget_types() {
   return $allowed_widget_types;
 }
 
-function mee_button_groups(){
-  $groups = array(
-    'font' => t('Font Style'),
-    'list' => t('List'),
-    'insert' => t('Insert Items'),
-    'other' => t('Other'),
-    'right' => t('Right'),
-  );
-  drupal_alter('mee_button_groups', $groups);
-  return $groups;
-}
-
 /**
  * Implements hook_form_FIELD_UI_FIELD_EDIT_FORM_alter().
  */
@@ -165,8 +153,7 @@ function mee_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
       '#type' => 'container',
     );
     $buttons = &$mee['settings']['toolbar']['buttons'];
-    $plugins = mee_get_plugin('buttons');
-    foreach($plugins as $name => $p){
+    foreach(mee_buttons() as $name => $p){
       $buttons[$name]['status'] = array(
         '#type' => 'hidden',
         '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['status']) ? $default_values['toolbar']['buttons'][$name]['status'] : 0,
@@ -210,13 +197,13 @@ function theme_mee_config_form_toolbar($vars){
   mee_add_js();
   $output = '';
   $element = $vars['element'];
-  $plugins = mee_get_plugin('buttons');
+  $buttons = mee_buttons();
   $defaults = !empty($element['#defaults']['buttons']) ? $element['#defaults']['buttons'] : array();
   $setup = array();
   foreach(mee_button_groups() as $k => $label){
     $setup[$k] = array();
   }
-  foreach($plugins as $name => $p){
+  foreach($buttons as $name => $p){
     $key = 'disabled';
     $data = !empty($defaults[$name]) ? $defaults[$name] : array();
     if(!empty($data['status']) && !empty($data['group'])) $key = $data['group'];
@@ -232,7 +219,7 @@ function theme_mee_config_form_toolbar($vars){
   $output .= '      <label>Disabled <span>(drag to toolbar to activate)</span></label>';
   $output .= '      <ul id="mee-group-disabled" class="btn-group mee-sortable">';
   foreach($setup['disabled'] as $name => $weight){
-    $p = $plugins[$name];
+    $p = $buttons[$name];
     $output .= '        <li id="mee-'.$name.'" class="btn btn-mini btn-inverse" title="'.$p['tip'].'">';
     $output .= '          <i class="icon-'.$p['icon'].'"></i>';
     $output .= '        </li>';
@@ -252,7 +239,7 @@ function theme_mee_config_form_toolbar($vars){
     //$output .= '      <label>'.$label.'</label>';
     $output .= '      <ul id="mee-group-' . $k . '" class="btn-group mee-sortable">';
     foreach($setup[$k] as $name => $weight){
-      $p = $plugins[$name];
+      $p = $buttons[$name];
       $output .= '        <li id="mee-'.$name.'" class="btn btn-mini btn-inverse" title="'.$p['tip'].'">';
       $output .= '          <i class="icon-'.$p['icon'].'"></i>';
       $output .= '        </li>';
