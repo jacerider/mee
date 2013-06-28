@@ -39,6 +39,15 @@ function mee_asset_menu(){
     //'delivery callback' => 'ajax_deliver',
     'type' => MENU_CALLBACK
   );
+  $items['asset/delete/%/%'] = array(
+    'page callback' => 'mee_asset_remove',
+    'page arguments' => array(2,3),
+    'access callback' => 'mee_asset_access',
+    'access arguments' => array('delete', 2),
+    'file' => 'mee_asset.page.inc',
+    //'delivery callback' => 'ajax_deliver',
+    'type' => MENU_CALLBACK
+  );
   return $items;
 }
 
@@ -50,7 +59,7 @@ function mee_asset_custom_theme() {
     $themes = list_themes();
     if(!empty($themes[$_POST['ajax_page_state']['theme']])) return $_POST['ajax_page_state']['theme'];
   }
-  if (arg(0) == 'asset' && arg(1) == 'view' && !empty($_POST['ajax_page_state']['theme'])) {
+  if (arg(0) == 'asset' && in_array(arg(1), array('view','delete')) && !empty($_POST['ajax_page_state']['theme'])) {
     $themes = list_themes();
     if(!empty($themes[$_POST['ajax_page_state']['theme']])) return $_POST['ajax_page_state']['theme'];
   }

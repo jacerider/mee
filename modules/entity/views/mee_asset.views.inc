@@ -88,25 +88,47 @@ function mee_asset_views_default_views_browser( $bundle ){
 
   /* Display: Master */
   $handler = $view->new_display('default', 'Master', 'default');
+  $handler->display->display_options['use_ajax'] = TRUE;
   $handler->display->display_options['use_more_always'] = FALSE;
   $handler->display->display_options['access']['type'] = 'none';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
   $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['pager']['type'] = 'full';
-  $handler->display->display_options['style_plugin'] = 'default';
+  $handler->display->display_options['pager']['options']['items_per_page'] = '8';
+  $handler->display->display_options['pager']['options']['offset'] = '0';
+  $handler->display->display_options['pager']['options']['id'] = '0';
+  $handler->display->display_options['pager']['options']['quantity'] = '9';
+  $handler->display->display_options['style_plugin'] = 'grid';
   $handler->display->display_options['row_plugin'] = 'fields';
-  /* Field: Asset: Asset ID */
-  $handler->display->display_options['fields']['mee_asset_id']['id'] = 'mee_asset_id';
-  $handler->display->display_options['fields']['mee_asset_id']['table'] = 'mee_asset';
-  $handler->display->display_options['fields']['mee_asset_id']['field'] = 'mee_asset_id';
+  /* Field: Asset: Name */
+  $handler->display->display_options['fields']['name']['id'] = 'name';
+  $handler->display->display_options['fields']['name']['table'] = 'mee_asset';
+  $handler->display->display_options['fields']['name']['field'] = 'name';
+  $handler->display->display_options['fields']['name']['label'] = '';
+  $handler->display->display_options['fields']['name']['element_label_colon'] = FALSE;
+  /* Field: Asset: Asset Select */
+  $handler->display->display_options['fields']['asset_select']['id'] = 'asset_select';
+  $handler->display->display_options['fields']['asset_select']['table'] = 'mee_asset';
+  $handler->display->display_options['fields']['asset_select']['field'] = 'asset_select';
+  $handler->display->display_options['fields']['asset_select']['label'] = '';
+  $handler->display->display_options['fields']['asset_select']['element_type'] = '0';
+  $handler->display->display_options['fields']['asset_select']['element_label_colon'] = FALSE;
+  $handler->display->display_options['fields']['asset_select']['element_wrapper_type'] = '0';
+  $handler->display->display_options['fields']['asset_select']['element_default_classes'] = FALSE;
+  /* Sort criterion: Asset: Created */
+  $handler->display->display_options['sorts']['created']['id'] = 'created';
+  $handler->display->display_options['sorts']['created']['table'] = 'mee_asset';
+  $handler->display->display_options['sorts']['created']['field'] = 'created';
+  $handler->display->display_options['sorts']['created']['order'] = 'DESC';
   /* Filter criterion: Asset: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'mee_asset';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    $bundle->type => $bundle->type,
+    'image' => 'image',
   );
+  $handler->display->display_options['filters']['type']['group'] = 1;
 
   return $view;
 

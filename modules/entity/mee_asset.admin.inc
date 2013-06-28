@@ -227,6 +227,9 @@ function mee_asset_edit_form($form, &$form_state, $mee_asset, $js) {
       'method' => 'replace',
       'effect' => 'fade',
     );
+    $form['actions']['cancel'] = array(
+      '#markup' => l('Cancel', 'asset/browser/'.$mee_asset->type.'/nojs', array('attributes'=>array('class'=>array('use-ajax', 'btn', 'btn-link')))),
+    );
   }
 
   if (!empty($mee_asset->name)) {
@@ -280,6 +283,7 @@ function mee_asset_edit_form_submit(&$form, &$form_state) {
   $mee_asset->save();
 
   if($form_state['js']){
+    drupal_set_message('Asset created successfully.');
     $form_state['rebuild'] = TRUE;
   }else{
     $form_state['redirect'] = 'admin/content/asset';
