@@ -192,7 +192,7 @@ function mee_add_js($settings = NULL) {
 
 function mee_icons(){
   $icons = array(
-    'mee-bold','mee-quote','mee-code','mee-fullscreen','mee-heading','mee-image','mee-italic','mee-link','mee-spinner','mee-drupal'
+    'mee-bold','mee-quote','mee-code','mee-fullscreen','mee-heading','mee-image','mee-italic','mee-link','mee-spinner','mee-drupal','mee-th-large','mee-th','mee-indent-left','mee-indent-right','mee-videocam','mee-pencil'
   );
   drupal_alter('mee_icons', $icons);
   return $icons;
