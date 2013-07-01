@@ -473,17 +473,16 @@ meeObject.prototype.previewResize = function ( height ) {
  * GLOBAL Widget
  */
 
-function meeWidget ( meeObject ) {
+function meeWidget () {
   var self = this;
-  self.meeObject = meeObject;
   self.build();
 }
 $.fn.meeWidget = meeWidget;
 
 meeWidget.prototype.build = function () {
   var self = this;
-  self.widgetCover = $('<div class="mee-widget-cover" />').appendTo( self.meeObject.mee.wrapper );
-  self.widget = $('<div id="mee-widget" class="mee-widget"><div class="mee-widget-inner"></div></div>').appendTo( self.meeObject.mee.wrapper );
+  self.widgetCover = $('<div class="mee-widget-cover" />').appendTo( meeActive.meeObject.mee.wrapper );
+  self.widget = $('<div id="mee-widget" class="mee-widget"><div class="mee-widget-inner"></div></div>').appendTo( meeActive.meeObject.mee.wrapper );
   self.widgetInner = self.widget.find('.mee-widget-inner');
   self.widgetHeader = $('<div class="mee-widget-header" />').appendTo(self.widgetInner);
   self.widgetClose = $('<a class="close" data-dismiss="widget">&times;</a>').click(function( e ){
@@ -514,6 +513,9 @@ meeWidget.prototype.show = function () {
 
 meeWidget.prototype.hide = function () {
   var self = this;
+  // unbind enter key if used
+  $(document).unbind('keyup.key13');
+
   $('html').bind("transitionend", function(){
     self.widget.remove();
     self.widgetCover.remove();
@@ -521,6 +523,8 @@ meeWidget.prototype.hide = function () {
   }).removeClass('mee-widget-active');
   // Trigger callback if set
   if(jQuery.isFunction( self.onHideCallback )) self.onHideCallback( this );
+  // Refresh preview
+  meeActive.meeObject.previewUpdate();
   return self;
 }
 
@@ -658,7 +662,7 @@ meeCommands.linkOrImage = function ( isImage ) {
     var linkEnteredCallback = function (link) {
       if (link !== null) {
         ss.text = (" " + ss.text).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
-        var linkDef = " [999]: " + properlyEncoded(link);
+        var linkDef = " [999]: " + that.properlyEncoded(link);
         var num = that.addLinkDef( linkDef );
         ss.startTag = isImage ? "![" : "[";
         ss.endTag = "][" + num + "]";
@@ -684,7 +688,7 @@ meeCommands.linkOrImage = function ( isImage ) {
       value = settingsGlobal.linkDefaultText;
     }
 
-    var widget = meeActive.meeWidget = new meeWidget( meeObject )
+    var widget = meeActive.meeWidget = new meeWidget()
       .setTitle( buttonSettings.label + ' ' )
       .setTitle( title )
       .setContent( info );
@@ -724,7 +728,7 @@ meeCommands.linkOrImage = function ( isImage ) {
   }
 };
 
-function properlyEncoded(linkdef) {
+meeCommands.properlyEncoded = function (linkdef) {
   return linkdef.replace(/^\s*(.*?)(?:\s+"(.+)")?\s*$/, function (wholematch, link, title) {
     link = link.replace(/\?.*$/, function (querypart) {
       return querypart.replace(/\+/g, " "); // in the query string, a plus and a space are identical

@@ -5,9 +5,15 @@
   "glyphs": [
     {
       "uid": "72109d2fb3088d0e66ea6a9204297651",
-      "css": "spinner",
+      "css": "mee-spinner",
       "code": 59403,
       "src": "fontelico"
+    },
+    {
+      "uid": "0f99ab40ab0b4d64a74f2d0deeb03e42",
+      "css": "mee-videocam",
+      "code": 59405,
+      "src": "fontawesome"
     },
     {
       "uid": "7034e4d22866af82bef811f52fb1ba46",
@@ -40,6 +46,18 @@
       "src": "fontawesome"
     },
     {
+      "uid": "594e9271c08ff732c04b3bf3117b9040",
+      "css": "mee-indent-left",
+      "code": 59408,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "4d2dfc45d8176b1f26aed973fa84a91e",
+      "css": "mee-indent-right",
+      "code": 59409,
+      "src": "fontawesome"
+    },
+    {
       "uid": "a2a74f5e7b7d9ba054897d8c795a326a",
       "css": "mee-ul",
       "code": 59394,
@@ -65,7 +83,7 @@
     },
     {
       "uid": "9794e9b767f192e0d499dfc98d52e802",
-      "css": "drupal",
+      "css": "mee-drupal",
       "code": 59404,
       "src": "zocial"
     },
@@ -73,6 +91,18 @@
       "uid": "a1be363d4de9be39857893d4134f6215",
       "css": "mee-image",
       "code": 59396,
+      "src": "elusive"
+    },
+    {
+      "uid": "76f961b11f65300838a5a78856aca30f",
+      "css": "mee-th-large",
+      "code": 59407,
+      "src": "elusive"
+    },
+    {
+      "uid": "93faa7cec68bf69ec455bbab61e58e48",
+      "css": "mee-th",
+      "code": 59406,
       "src": "elusive"
     },
     {
