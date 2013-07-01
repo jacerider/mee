@@ -39,6 +39,9 @@ class mee_asset_handler_asset_select_field extends views_handler_field {
 
   function render($values) {
     $output = '<a class="asset-select" href="#" data-id="'.$values->mee_asset_id.'" data-type="'.$values->mee_asset_type.'">Select</a>';
+    if(mee_asset_access('update', $values->mee_asset_type)){
+      $output .= l('<i class="icon-mee-pencil"></i>', 'admin/content/asset/'.$values->mee_asset_id.'/edit/nojs', array('html'=>true, 'attributes'=>array('class'=>array('asset-edit', 'use-ajax', 'btn','btn-mini','btn-info'))));
+    }
     if(mee_asset_access('delete', $values->mee_asset_type)){
       $output .= l('×', 'asset/delete/'.$values->mee_asset_type.'/'.$values->mee_asset_id.'/nojs', array('attributes'=>array('class'=>array('asset-delete', 'use-ajax', 'btn','btn-mini','btn-danger'))));
     }

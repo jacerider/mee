@@ -8,7 +8,7 @@
  * @param  $type
  *   The bundled asset to load a browser for.
  */
-function mee_asset_browser( $type, $js = FALSE ) {
+function mee_asset_browser( $type, $js = FALSE, $return_commands = FALSE ) {
 
   $output = array();
   $output['#prefix'] = '<div class="asset-browser-inner clearfix">';
@@ -29,6 +29,9 @@ function mee_asset_browser( $type, $js = FALSE ) {
   $commands = array();
   $commands[] = ajax_command_html('#asset-browser', drupal_render($output));
   $commands[] = ajax_command_invoke('#mee-widget', 'removeClass', array('mee-widget-expanded'));
+  if($return_commands){
+    return $commands;
+  }
   $page = array('#type' => 'ajax', '#commands' => $commands);
   ajax_deliver($page);
   exit;
@@ -51,7 +54,11 @@ function mee_asset_view( $type, $id, $js = FALSE ){
   $output = array();
 
   $asset = mee_asset_load( $id );
-  $output['view'] = entity_view('mee_asset', array($asset), $view_mode = 'full');
+  if($asset){
+    $output['view'] = entity_view('mee_asset', array($asset), $view_mode = 'full');
+  }else{
+    $output['view'] = array('#markup' => '<div class="alert">'.t('Asset not found.').' (type: '.$type.', id: '.$id.')</div>');
+  }
 
   if( $js != 'ajax'){
     return $output;
@@ -65,7 +72,7 @@ function mee_asset_view( $type, $id, $js = FALSE ){
 }
 
 /**
- * Render an asset
+ * Remove an asset
  *
  * @author JaceRider
  *

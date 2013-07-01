@@ -232,10 +232,10 @@ function mee_asset_edit_form($form, &$form_state, $mee_asset, $js) {
     );
   }
 
-  if (!empty($mee_asset->name)) {
+  if (!empty($mee_asset->name) && !$js) {
     $form['actions']['delete'] = array(
       '#type' => 'submit',
-      '#value' => t('Delete mee asset'),
+      '#value' => t('Delete Asset'),
       '#suffix' => l(t('Cancel'), 'admin/content/mee'),
       '#submit' => $submit + array('mee_asset_form_submit_delete'),
       '#weight' => 45,
@@ -250,7 +250,14 @@ function mee_asset_edit_form($form, &$form_state, $mee_asset, $js) {
 
 function mee_asset_edit_form_submit_ajax($form, $form_state) {
   module_load_include('inc','mee_asset','mee_asset.page');
-  return mee_asset_browser( $form_state['mee_asset']->type, TRUE );
+  $commands = mee_asset_browser( $form_state['mee_asset']->type, TRUE, TRUE );
+  // Flush js cache so new element is updated
+  if(!empty($form_state['mee_asset']->mee_asset_id)){
+    $commands[] = mee_asset_ajax_command_asset_clear_cache($form_state['mee_asset']->type, $form_state['mee_asset']->mee_asset_id);
+  }
+  $page = array('#type' => 'ajax', '#commands' => $commands);
+  ajax_deliver($page);
+  exit;
 }
 
 
@@ -283,7 +290,11 @@ function mee_asset_edit_form_submit(&$form, &$form_state) {
   $mee_asset->save();
 
   if($form_state['js']){
-    drupal_set_message('Asset created successfully.');
+    if(empty($mee_asset->mee_asset_id)){
+      drupal_set_message('Asset created successfully.');
+    }else{
+      drupal_set_message('Asset updated successfully.');
+    }
     $form_state['rebuild'] = TRUE;
   }else{
     $form_state['redirect'] = 'admin/content/asset';

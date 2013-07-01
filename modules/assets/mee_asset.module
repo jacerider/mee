@@ -27,7 +27,6 @@ function mee_asset_menu(){
     'access callback' => 'mee_asset_access',
     'access arguments' => array('view', 2),
     'file' => 'mee_asset.page.inc',
-    //'delivery callback' => 'ajax_deliver',
     'type' => MENU_CALLBACK
   );
   $items['asset/view/%/%'] = array(
@@ -36,7 +35,6 @@ function mee_asset_menu(){
     'access callback' => 'mee_asset_access',
     'access arguments' => array('view', 2),
     'file' => 'mee_asset.page.inc',
-    //'delivery callback' => 'ajax_deliver',
     'type' => MENU_CALLBACK
   );
   $items['asset/delete/%/%'] = array(
@@ -45,7 +43,6 @@ function mee_asset_menu(){
     'access callback' => 'mee_asset_access',
     'access arguments' => array('delete', 2),
     'file' => 'mee_asset.page.inc',
-    //'delivery callback' => 'ajax_deliver',
     'type' => MENU_CALLBACK
   );
   return $items;
@@ -59,12 +56,54 @@ function mee_asset_custom_theme() {
     $themes = list_themes();
     if(!empty($themes[$_POST['ajax_page_state']['theme']])) return $_POST['ajax_page_state']['theme'];
   }
-  if (arg(0) == 'asset' && in_array(arg(1), array('view','delete')) && !empty($_POST['ajax_page_state']['theme'])) {
+  if (arg(0) == 'asset' && in_array(arg(1), array('view','delete','edit')) && !empty($_POST['ajax_page_state']['theme'])) {
     $themes = list_themes();
     if(!empty($themes[$_POST['ajax_page_state']['theme']])) return $_POST['ajax_page_state']['theme'];
   }
 }
 
+/**
+* Implements hook_filter_info().
+*/
+function mee_asset_filter_info() {
+  $filters = array();
+  $filters['mee_asset'] = array(
+    'title' => t('Asset formatter'),
+    'description' => t('Convert asset tokens to rendered assets.'),
+    //'prepare callback' => 'mee_asset_filter_prepare',
+    'process callback' => 'mee_asset_filter_process',
+    //'tips callback' => 'mee_asset_filter_tips',
+  );
+  return $filters;
+}
+
+/**
+ * Filter process callback.
+ */
+function mee_asset_filter_process($text, $format) {
+  if (!empty($text)) {
+    $pattern = '/(\[asset-[a-z]+-[0-9]+\])/i';
+    preg_match_all($pattern, $text, $matches);
+    if(!empty($matches[0])){
+      foreach($matches[0] as $match){
+        $pattern = '/\[asset-([a-z]+)-([0-9]+)\]/i';
+        preg_match($pattern, $match, $m);
+        if(!empty($m[2]) && $asset = mee_asset_load( $m[2] )){
+          $view = entity_view('mee_asset', array($asset), $view_mode = 'full');
+          $text = str_replace($match, drupal_render($view), $text);
+        }
+      }
+    }
+  }
+
+  return $text;
+}
+
+/**
+ * AJAX Tool for inserting an asset
+ *
+ * @author JaceRider
+ */
 function mee_asset_ajax_command_asset_insert($selector, $html, $settings = NULL) {
   return array(
     'command' => 'assetInsert',
@@ -72,6 +111,19 @@ function mee_asset_ajax_command_asset_insert($selector, $html, $settings = NULL)
     'selector' => $selector,
     'data' => $html,
     'settings' => $settings,
+  );
+}
+
+/**
+ * AJAX Tool for clearing javascript cache of an asset
+ *
+ * @author JaceRider
+ */
+function mee_asset_ajax_command_asset_clear_cache($type, $id) {
+  return array(
+    'command' => 'assetCacheClear',
+    'type' => $type,
+    'id' => $id,
   );
 }
 

@@ -40,7 +40,7 @@ $.fn.meeCommands.asset = function () {
   var mee = $.fn.meeActive;
   var placeholder = $('<div id="asset-browser"><div class="mee-loader"><div><i class="icon-mee-spinner animate-spin"></i> Loading ' + mee.meeButtonSettings.data.label.toLowerCase() + ' browser...</div></div></div>');
 
-  mee.meeWidget = new $.fn.meeWidget( mee.meeObject )
+  mee.meeWidget = new $.fn.meeWidget()
     .setTitle( mee.meeButtonSettings.label + ' ' )
     .setTitle( mee.meeButtonSettings.data.label )
     .setContent( placeholder );
@@ -89,7 +89,7 @@ $.fn.meeReplace.after.asset = function ( text ) {
     var parts = match.match(regex);
     var type = parts[1];
     var id = parts[2];
-    return text.replace(regex, '<div class="asset-loader asset-' + type + '-' + id + '" data-type="' + type + '" data-id="' + id + '"><div><i class="icon-mee-spinner animate-spin"></i> This will be replace by asset type ' + type + ' with id ' + id + '</div></div>');
+    return text.replace(regex, '<div class="asset-loader asset-' + type + '-' + id + '" data-type="' + type + '" data-id="' + id + '"><div class="asset-loading"><div><i class="icon-mee-spinner animate-spin"></i> This will be replace by asset type ' + type + ' with id ' + id + '</div></div></div>');
   });
   return text;
 }
@@ -118,9 +118,7 @@ $.fn.meeReplace.finish.asset = function ( meeObject ) {
     };
 
     // Use cache if asset has already been loaded
-    console.log(Drupal.behaviors.mee_asset.cache);
     if(Drupal.behaviors.mee_asset.cache[base]){
-      console.log('CACHED');
       var response = {
           method    : 'html'
         , selector  : '.asset-' + type + '-' + id
@@ -130,11 +128,9 @@ $.fn.meeReplace.finish.asset = function ( meeObject ) {
     }
     else {
       if(Drupal.behaviors.mee_asset.processed[base]){
-        console.log('WAIT');
         $.fn.meeReplace.finish.asset( meeObject );
       }
       else{
-        console.log('FETCH');
         Drupal.behaviors.mee_asset.processed[base] = true;
         Drupal.ajax[base] = new Drupal.ajax(base, $this, element_settings);
         // Trigger AJAX request
@@ -170,6 +166,15 @@ Drupal.ajax.prototype.commands.assetInsert = function (ajax, response, status) {
     Drupal.attachBehaviors(new_content, settings);
     ajax.meeObject.previewUpdate();
   //}
+}
+
+/******************************************************************************
+ *  Drupal AJAX command for inserting into iframe
+ */
+Drupal.ajax.prototype.commands.assetCacheClear = function (ajax, response, status) {
+  var base = response.type + '-' + response.id;
+  delete Drupal.behaviors.mee_asset.processed[base];
+  delete Drupal.behaviors.mee_asset.cache[base];
 }
 
 })(jQuery);

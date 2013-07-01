@@ -5,7 +5,7 @@ $entity = entity_get_info('mee_asset');
 $bundles = entity_load('mee_asset_type', array_keys($entity['bundles']));
 foreach($bundles as $bundle){
   $plugin['buttons']['asset_'.$bundle->type] = array(
-    'title' => t('Asset'),
+    'title' => t('@label Asset', array('@label' => $bundle->label)),
     'icon' => current(array_filter($bundle->data['icon'])),
     'tip' => $bundle->data['tip'],
     'shortcut' => $bundle->data['shortcut'],
