@@ -143,6 +143,46 @@
   //@include border-radius(3px);
   @include opacity(0);
 
+  .ajax-progress{
+    position:absolute;
+    z-index:20;
+    background:rgba(0,0,0,.5);
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+
+    .throbber{
+      background:none;
+      position:absolute;
+      top:50%;
+      left:50%;
+      margin-left:-.6em;
+      margin-top:-1.7em;
+    }
+
+    .throbber:before {
+      font-family: "mee";
+      color:#fff;
+      font-style: normal;
+      font-weight: normal;
+      speak: none;
+      display: inline-block;
+      text-decoration: inherit;
+      width: 1em;
+      text-align: center;
+      /* opacity: .8; */
+      font-variant: normal;
+      text-transform: none;
+      line-height: 1em;
+      content: '\e80b';
+      -moz-animation: spin 2s infinite linear;
+      -o-animation: spin 2s infinite linear;
+      -webkit-animation: spin 2s infinite linear;
+      animation: spin 2s infinite linear;
+    }
+  }
+
   .mee-widget-inner{
     position:relative;
   }
@@ -175,6 +215,18 @@
   form{
     margin:0;
     padding-bottom:50px;
+
+    fieldset{
+      background:none;
+    }
+
+    legend{
+      margin-bottom:0;
+    }
+
+    .fieldset-legend{
+      position:static;
+    }
 
     .form-actions{
       position:absolute;
@@ -238,119 +290,76 @@ html.mee-widget-active{
 /**
  * Assets
  */
-#asset-browser{
+.asset-browser-inner{
+  // background:#3F3F3F;
+  // @include border-radius(5px);
+  padding:10px 0;
 
-  .ajax-progress{
-    position:absolute;
-    z-index:20;
-    background:rgba(0,0,0,.5);
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-
-    .throbber{
-      background:none;
-      position:absolute;
-      top:50%;
-      left:50%;
-      margin-left:-.6em;
-      margin-top:-1.7em;
-    }
-
-    .throbber:before {
-      font-family: "mee";
-      color:#fff;
-      font-style: normal;
-      font-weight: normal;
-      speak: none;
-      display: inline-block;
-      text-decoration: inherit;
-      width: 1em;
-      text-align: center;
-      /* opacity: .8; */
-      font-variant: normal;
-      text-transform: none;
-      line-height: 1em;
-      content: '\e80b';
-      -moz-animation: spin 2s infinite linear;
-      -o-animation: spin 2s infinite linear;
-      -webkit-animation: spin 2s infinite linear;
-      animation: spin 2s infinite linear;
-    }
+  table{
+    border:none !important;
   }
 
-  .asset-browser-inner{
-    // background:#3F3F3F;
-    // @include border-radius(5px);
-    padding:10px 0;
+  td{
+    padding:0;
+    border:none !important;
+  }
 
-    table{
-      border:none !important;
-    }
+  .asset{
+    position:relative;
+    padding:0;
+    background:#3f3f3f;
+    color:#fff;
+    font-shadow: 0 -1px 0 #000;
+    width:170px;
+    height:100px;
+    margin:10px auto;
+    text-align: center;
+    overflow:hidden;
 
-    td{
-      padding:0;
-      border:none !important;
-    }
-
-    .asset{
-      position:relative;
-      padding:0;
-      background:#3f3f3f;
-      color:#fff;
-      font-shadow: 0 -1px 0 #000;
-      width:170px;
-      height:100px;
-      margin:10px auto;
-      text-align: center;
-      overflow:hidden;
-
-      .views-field-name{
-        position:absolute;
-        bottom:0;
-        left:0;
-        right:0;
-        background:rgba(0,0,0,.5);
-        font-size:11px;
-        line-height:11px;
-        padding:5px;
-      }
-    }
-
-    .asset-select{
+    .views-field-name{
       position:absolute;
+      bottom:0;
       left:0;
       right:0;
-      top:0;
-      bottom:0;
-      z-index:10;
-      text-indent:-1000px;
-      overflow:hidden;
-
-      &:focus{
-        outline: none;
-      }
-    }
-
-    .asset-delete{
-      position:absolute;
-      right:10px;
-      top:10px;
-      z-index:11;
+      background:rgba(0,0,0,.5);
+      font-size:11px;
+      line-height:11px;
+      padding:5px;
     }
   }
 
-  .asset-loader{
-    background: rgba(255,255,255,.5);
-    @include border-radius(5px);
-    color:#646464;
-    text-align: center;
-    font-size: 14px;
+  .asset-select{
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    z-index:10;
+    text-indent:-1000px;
+    overflow:hidden;
 
-    div{
-      padding:5px;
+    &:focus{
+      outline: none;
     }
+  }
+
+  .asset-delete{
+    position:absolute;
+    right:10px;
+    top:10px;
+    z-index:11;
+  }
+}
+
+.asset-loader{
+  background: rgba(255,255,255,.5);
+  @include border-radius(5px);
+  color:#646464;
+  text-align: center;
+  font-size: 14px;
+
+  div{
+    padding:5px;
   }
 }
 
