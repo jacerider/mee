@@ -221,7 +221,7 @@ function theme_mee_config_form_toolbar($vars){
   foreach($setup['disabled'] as $name => $weight){
     $p = $buttons[$name];
     $output .= '        <li id="mee-'.$name.'" class="btn btn-mini btn-inverse" title="'.$p['tip'].'">';
-    $output .= '          <i class="icon-'.$p['icon'].'"></i>';
+    $output .= '          <i class="icon-'.$p['icon'].'"></i> '.$p['title'];
     $output .= '        </li>';
   }
   $output .= '      </ul>';
@@ -241,7 +241,7 @@ function theme_mee_config_form_toolbar($vars){
     foreach($setup[$k] as $name => $weight){
       $p = $buttons[$name];
       $output .= '        <li id="mee-'.$name.'" class="btn btn-mini btn-inverse" title="'.$p['tip'].'">';
-      $output .= '          <i class="icon-'.$p['icon'].'"></i>';
+      $output .= '          <i class="icon-'.$p['icon'].'"></i> '.$p['title'];
       $output .= '        </li>';
     }
     $output .= '      </ul>';
