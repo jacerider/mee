@@ -126,7 +126,7 @@ function mee_asset_views_default_views_browser( $bundle ){
   $handler->display->display_options['filters']['type']['table'] = 'mee_asset';
   $handler->display->display_options['filters']['type']['field'] = 'type';
   $handler->display->display_options['filters']['type']['value'] = array(
-    'image' => 'image',
+    $bundle->type => $bundle->type,
   );
   $handler->display->display_options['filters']['type']['group'] = 1;
 
