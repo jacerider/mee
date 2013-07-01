@@ -1,0 +1,27 @@
+<?php
+
+/**
+* Implements hook_ctools_plugin_directory().
+*/
+function mee_link_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'mee') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_menu
+ *
+ * @author JaceRider
+ */
+function mee_link_menu(){
+  $items['admin/mee/link'] = array(
+    'page callback' => 'mee_link_selector',
+    'access callback' => TRUE,
+    //'access callback' => 'mee_asset_access',
+    //'access arguments' => array('view', 2),
+    'file' => 'mee_link.page.inc',
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}

@@ -1,0 +1,7 @@
+name        = MEE: Link
+description = An enhanced link button.
+package     = Mee
+version     = VERSION
+core        = 7.x
+
+dependencies[] = mee
