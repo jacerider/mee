@@ -168,6 +168,8 @@ function mee_process_widget(&$element) {
   //$element[$key]['#value'] = "This is a **test** of *awesomness*\n\n - List item\n\n[enter link description here][1]\n\nThis is just a long bit of text so I can run tests\n\n##A really cool test\n\n###this is sooo stinking cool!\n\n [1]: http://www.google.com";
   //$element['#value'] = "[Google][1]\n\n[1]: http://google.com";
 
+  drupal_alter('mee_editor_element', $element);
+
   return $element;
 }
 
@@ -180,6 +182,8 @@ function mee_preprocess_html(&$vars) {
  */
 function mee_add_js($settings = NULL) {
   drupal_add_library('mee', 'mee', FALSE);
+  drupal_add_library('system', 'drupal.ajax');
+  drupal_add_library('system', 'jquery.form');
   foreach(mee_buttons() as $name => $p){
     if(!empty($p['script'])){
       drupal_add_js(drupal_get_path('module', $p['module']).'/'.$p['script']);
