@@ -76,6 +76,16 @@ function mee_asset_views_default_views() {
  */
 function mee_asset_views_default_views_browser( $bundle ){
 
+  $info = field_info_instances('mee_asset', $bundle->type);
+  $has_image = FALSE;
+  foreach($info as $field){
+    switch($field['widget']['type']){
+      case 'image_image':
+        $has_image = TRUE;
+        break;
+    }
+  }
+
   $view = new view;
   $view->name = 'mee_assets_browser_' . $bundle->type;
   $view->description = 'A view used by Mee to list assets of this type.';
@@ -101,12 +111,32 @@ function mee_asset_views_default_views_browser( $bundle ){
   $handler->display->display_options['pager']['options']['quantity'] = '9';
   $handler->display->display_options['style_plugin'] = 'grid';
   $handler->display->display_options['row_plugin'] = 'fields';
+  /* No results behavior: Global: Unfiltered text */
+  $handler->display->display_options['empty']['area_text_custom']['id'] = 'area_text_custom';
+  $handler->display->display_options['empty']['area_text_custom']['table'] = 'views';
+  $handler->display->display_options['empty']['area_text_custom']['field'] = 'area_text_custom';
+  $handler->display->display_options['empty']['area_text_custom']['label'] = 'No Results Found';
+  $handler->display->display_options['empty']['area_text_custom']['empty'] = TRUE;
+  $handler->display->display_options['empty']['area_text_custom']['content'] = '<div class="alert">No ' . strtolower($bundle->label) . ' found.</div>';
   /* Field: Asset: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'mee_asset';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['label'] = '';
   $handler->display->display_options['fields']['name']['element_label_colon'] = FALSE;
+  /* Field: Asset: Image */
+  if($has_image){
+    $handler->display->display_options['fields']['field_asset_image']['id'] = 'field_asset_image';
+    $handler->display->display_options['fields']['field_asset_image']['table'] = 'field_data_field_asset_image';
+    $handler->display->display_options['fields']['field_asset_image']['field'] = 'field_asset_image';
+    $handler->display->display_options['fields']['field_asset_image']['label'] = '';
+    $handler->display->display_options['fields']['field_asset_image']['element_label_colon'] = FALSE;
+    $handler->display->display_options['fields']['field_asset_image']['click_sort_column'] = 'fid';
+    $handler->display->display_options['fields']['field_asset_image']['settings'] = array(
+      'image_style' => 'asset-thumb',
+      'image_link' => '',
+    );
+  }
   /* Field: Asset: Asset Select */
   $handler->display->display_options['fields']['asset_select']['id'] = 'asset_select';
   $handler->display->display_options['fields']['asset_select']['table'] = 'mee_asset';
