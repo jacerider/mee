@@ -55,18 +55,13 @@ function mee_asset_type_form($form, &$form_state, $mee_asset_type, $op = 'edit')
   );
 
   $form['data']['#tree'] = TRUE;
-  $form['data']['sample_data'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('An interesting mee asset switch'),
-    '#default_value' => !empty($mee_asset_type->data['sample_data']),
-  );
 
   $options = array();
   foreach(mee_icons() as $icon){
     $options[$icon] = '<i class="icon-'.$icon.'"></i>';
   }
   $form['data']['icon'] = array(
-    '#type' => 'checkboxes',
+    '#type' => 'radios',
     '#title' => t('Toolbar Icon'),
     '#options' => $options,
     '#required' => TRUE,
