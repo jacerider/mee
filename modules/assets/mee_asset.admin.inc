@@ -186,12 +186,12 @@ function mee_asset_edit_form($form, &$form_state, $mee_asset, $js) {
     '#weight' => -5,
   );
 
-  $form['data']['#tree'] = TRUE;
-  $form['data']['sample_data'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('An interesting mee asset switch'),
-    '#default_value' => isset($mee_asset->data['sample_data']) ? $mee_asset->data['sample_data'] : 1,
-  );
+  // $form['data']['#tree'] = TRUE;
+  // $form['data']['sample_data'] = array(
+  //   '#type' => 'checkbox',
+  //   '#title' => t('An interesting mee asset switch'),
+  //   '#default_value' => isset($mee_asset->data['sample_data']) ? $mee_asset->data['sample_data'] : 1,
+  // );
 
   // Add the field related form elements.
   $form_state['mee_asset'] = $mee_asset;
