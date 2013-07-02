@@ -7,6 +7,78 @@
  */
 
 
+function mee_asset_install() {
+  // Create image bundle
+  if(mee_asset_install_bundle('image', 'Image', 'mee-image', 'Image - Ctrl+G', 'ctrl+g')){
+    mee_asset_install_bundle_image_fields();
+  }
+
+  // Create image style
+  mee_asset_install_image_style();
+}
+
+
+function mee_asset_uninstall() {
+  $instance = field_info_instance('mee_asset', 'field_asset_image', 'image');
+  field_delete_instance($instance);
+
+  // Delete image styles
+  image_style_delete(image_style_load('asset-thumb'));
+  image_style_delete(image_style_load('asset-full'));
+}
+
+/**
+ * Create a bundle
+ */
+function mee_asset_install_bundle($type, $label, $icon, $tip = NULL, $shortcut = NULL){
+  $bundles = field_info_bundles('mee_asset');
+  if (empty($bundles[$type])) {
+    $controller = new MeeAssetTypeController('mee_asset_type');
+    $params = array();
+    $params['type'] = $type;
+    $params['label'] = t($label);
+    $params['data']['icon'] = $icon;
+    $params['data']['tip'] = $tip;
+    $params['data']['shortcut'] = $shortcut;
+    $bundle = $controller->create($params);
+    $controller->save($bundle);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Create image style
+ */
+function mee_asset_install_image_style(){
+  if(!image_style_load('asset-thumb')){
+    $style = image_style_save(array('name' => 'asset-thumb'));
+    $effect = array(
+      'name' => 'image_scale_and_crop',
+      'data' => array(
+        'width' => 170,
+        'height' => 100,
+      ),
+      'isid' => $style['isid'],
+    );
+    image_effect_save($effect);
+  }
+  if(!image_style_load('asset-full')){
+    $style = image_style_save(array('name' => 'asset-full'));
+    $effect = array(
+      'name' => 'image_scale',
+      'data' => array(
+        'width' => 770,
+        'height' => '',
+        'upscale' => TRUE,
+      ),
+      'isid' => $style['isid'],
+    );
+    image_effect_save($effect);
+  }
+}
+
+
 /**
  * Implements hook_schema().
  */
@@ -114,25 +186,205 @@ function mee_asset_schema() {
   $schema['mee_asset_usage'] = array(
     'description' => 'Track where a Mee entity is used.',
     'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique mee asset type identifier.',
+      ),
       'mee_asset_id' => array(
         'description' => 'Mee asset ID.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'count' => array(
-        'description' => 'The number of times this mee asset is used by this object.',
+      'entity_id' => array(
+        'description' => 'The entity ID the assed is used within.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+      ),
+      'bundle' => array(
+        'description' => 'The {bundle}.type of this entity.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
       ),
     ),
-    'primary key' => array('mee_asset_id'),
+    'primary key' => array('id'),
     'indexes' => array(
-      'mee_asset_count' => array('mee_asset_id', 'count'),
+      'mee_asset_id' => array('mee_asset_id'),
+      'entity_id' => array('entity_id'),
     ),
   );
 
   return $schema;
+}
+
+function mee_asset_install_bundle_image_fields(){
+  $field = array(
+    'translatable' => '0',
+    'entity_types' => array() ,
+    'settings' => array(
+      'uri_scheme' => 'public',
+      'default_image' => 0,
+    ) ,
+    'storage' => array(
+      'type' => 'field_sql_storage',
+      'settings' => array() ,
+      'module' => 'field_sql_storage',
+      'active' => '1',
+      'details' => array(
+        'sql' => array(
+          'FIELD_LOAD_CURRENT' => array(
+            'field_data_field_asset_image' => array(
+              'fid' => 'field_asset_image_fid',
+              'alt' => 'field_asset_image_alt',
+              'title' => 'field_asset_image_title',
+              'width' => 'field_asset_image_width',
+              'height' => 'field_asset_image_height',
+            ) ,
+          ) ,
+          'FIELD_LOAD_REVISION' => array(
+            'field_revision_field_asset_image' => array(
+              'fid' => 'field_asset_image_fid',
+              'alt' => 'field_asset_image_alt',
+              'title' => 'field_asset_image_title',
+              'width' => 'field_asset_image_width',
+              'height' => 'field_asset_image_height',
+            ) ,
+          ) ,
+        ) ,
+      ) ,
+    ) ,
+    'foreign keys' => array(
+      'fid' => array(
+        'table' => 'file_managed',
+        'columns' => array(
+          'fid' => 'fid',
+        ) ,
+      ) ,
+    ) ,
+    'indexes' => array(
+      'fid' => array(
+        0 => 'fid',
+      ) ,
+    ) ,
+    'id' => '25',
+    'field_permissions' => array(
+      'type' => '0',
+    ) ,
+    'field_name' => 'field_asset_image',
+    'type' => 'image',
+    'module' => 'image',
+    'active' => '1',
+    'locked' => '0',
+    'cardinality' => '1',
+    'deleted' => '0',
+    'columns' => array(
+      'fid' => array(
+        'description' => 'The {file_managed}.fid being referenced in this field.',
+        'type' => 'int',
+        'not null' => false,
+        'unsigned' => true,
+      ) ,
+      'alt' => array(
+        'description' => 'Alternative image text, for the image\'s \'alt\' attribute.',
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => false,
+      ) ,
+      'title' => array(
+        'description' => 'Image title text, for the image\'s \'title\' attribute.',
+        'type' => 'varchar',
+        'length' => 1024,
+        'not null' => false,
+      ) ,
+      'width' => array(
+        'description' => 'The width of the image in pixels.',
+        'type' => 'int',
+        'unsigned' => true,
+      ) ,
+      'height' => array(
+        'description' => 'The height of the image in pixels.',
+        'type' => 'int',
+        'unsigned' => true,
+      ) ,
+    ) ,
+    'bundles' => array(
+      'mee_asset' => array(
+        0 => 'image',
+      ) ,
+    ) ,
+  );
+  field_create_field($field);
+
+  $instance = array(
+    'label' => 'Image',
+    'widget' => array(
+      'weight' => '1',
+      'type' => 'image_image',
+      'module' => 'image',
+      'active' => 1,
+      'settings' => array(
+        'progress_indicator' => 'throbber',
+        'preview_image_style' => 'thumbnail',
+        'maxlength_js_label' => 'Content limited to @limit characters, remaining: @remaining',
+      ) ,
+    ) ,
+    'settings' => array(
+      'file_directory' => '',
+      'file_extensions' => 'png gif jpg jpeg',
+      'max_filesize' => '',
+      'max_resolution' => '',
+      'min_resolution' => '',
+      'alt_field' => 1,
+      'title_field' => 0,
+      'default_image' => 0,
+      'filefield_paths_enabled' => 1,
+      'filefield_paths' => array(
+        'file_path' => array(
+          'value' => 'assets/images',
+          'options' => array(
+            'pathauto' => 0,
+            'transliterate' => 0,
+          ) ,
+        ) ,
+        'retroactive_update' => 0,
+        'active_updating' => 0,
+        'file_name' => array(
+          'value' => '[mee_asset:mee-asset-id]-[file:fid]-[mee_asset:name].[file:ffp-extension-original]',
+          'options' => array(
+            'pathauto' => 1,
+            'transliterate' => 0,
+          ) ,
+        ) ,
+      ) ,
+      'focus' => 0,
+      'focus_min_size' => '',
+      'focus_lock_ratio' => 0,
+      'user_register_form' => false,
+    ) ,
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'type' => 'image',
+        'weight' => '0',
+        'settings' => array(
+          'image_style' => 'asset-full',
+          'image_link' => '',
+        ) ,
+        'module' => 'image',
+      ) ,
+    ) ,
+    'required' => 1,
+    'description' => '',
+    'id' => '57',
+    'field_id' => '28',
+    'field_name' => 'field_asset_image',
+    'entity_type' => 'mee_asset',
+    'bundle' => 'image',
+    'deleted' => '0',
+  );
+  field_create_instance($instance);
 }
