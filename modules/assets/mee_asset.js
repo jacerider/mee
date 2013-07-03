@@ -19,11 +19,10 @@ Drupal.behaviors.mee_asset = {
     e.preventDefault();
     var $this = $(this);
     var id = $this.attr('data-id');
-    var type = $this.attr('data-type');
     // This text will be automatically selected
     var ss = $.fn.meeActive.meeSelection;
     var widget = $.fn.meeActive.meeWidget;
-    ss.before = ss.before + '[asset-' + type + '-' + id + ']';
+    ss.before = ss.before + '[asset-' + id + ']';
     // Text that will be displayed after the selected text
     ss.selectionSet();
     widget.hide();
@@ -82,14 +81,13 @@ $.fn.meeCommands.asset = function () {
  * Token Replacment -- Runs AFTER conversion to markup
  */
 $.fn.meeReplace.after.asset = function ( text ) {
-  var regex = new RegExp("(\\[asset-[a-z]+-[0-9]+\\])","g");
+  var regex = new RegExp("(\\[asset-[0-9]+\\])","g");
   var match;
   text = text.replace(regex, function(match, text){
-    regex = new RegExp("\\[asset-([a-z]+)-([0-9]+)\\]",["i"]);
+    regex = new RegExp("\\[asset-([0-9]+)\\]",["i"]);
     var parts = match.match(regex);
-    var type = parts[1];
-    var id = parts[2];
-    return text.replace(regex, '<div class="asset-loader asset-' + type + '-' + id + '" data-type="' + type + '" data-id="' + id + '"><div class="asset-loading"><div><i class="icon-mee-spinner animate-spin"></i> This will be replace by asset type ' + type + ' with id ' + id + '</div></div></div>');
+    var id = parts[1];
+    return text.replace(regex, '<div class="asset-loader asset-' + id + '" data-id="' + id + '"><div class="asset-loading"><div><i class="icon-mee-spinner animate-spin"></i> This will be replace by asset with id ' + id + '</div></div></div>');
   });
   return text;
 }
@@ -102,18 +100,16 @@ $.fn.meeReplace.finish.asset = function ( meeObject ) {
   $('.asset-loader', meeObject.mee.preview).once(function(){
     var $this = $(this);
     var id = $this.attr('data-id');
-    var type = $this.attr('data-type');
-    var base = type + '-' + id;
+    var base = id;
 
     // Setup AJAX request
     var element_settings = {
-        url         : '/asset/view/' + type + '/' + id + '/ajax'
+        url         : '/asset/view/' + id + '/ajax'
       , event       : 'onload'
       , keypress    : false
       , prevent     : false
       , meeObject   : meeObject
       , asset_id    : id
-      , asset_type  : type
       , progress    : { 'type' : 'none' }
     };
 
@@ -121,7 +117,7 @@ $.fn.meeReplace.finish.asset = function ( meeObject ) {
     if(Drupal.behaviors.mee_asset.cache[base]){
       var response = {
           method    : 'html'
-        , selector  : '.asset-' + type + '-' + id
+        , selector  : '.asset-' + id
         , data      : Drupal.behaviors.mee_asset.cache[base]
       };
       Drupal.ajax.prototype.commands.assetInsert(element_settings, response, 1);
@@ -146,7 +142,7 @@ $.fn.meeReplace.finish.asset = function ( meeObject ) {
 Drupal.ajax.prototype.commands.assetInsert = function (ajax, response, status) {
   var wrapper = response.selector ? $(response.selector, ajax.meeObject.mee.preview) : $(ajax.wrapper);
   var method = response.method || ajax.method;
-  var base = ajax.asset_type + '-' + ajax.asset_id;
+  var base = ajax.asset_id;
 
   var new_content_wrapped = $('<div></div>').html(response.data);
   var new_content = new_content_wrapped.contents();
@@ -172,7 +168,7 @@ Drupal.ajax.prototype.commands.assetInsert = function (ajax, response, status) {
  *  Drupal AJAX command for inserting into iframe
  */
 Drupal.ajax.prototype.commands.assetCacheClear = function (ajax, response, status) {
-  var base = response.type + '-' + response.id;
+  var base = response.id;
   delete Drupal.behaviors.mee_asset.processed[base];
   delete Drupal.behaviors.mee_asset.cache[base];
 }

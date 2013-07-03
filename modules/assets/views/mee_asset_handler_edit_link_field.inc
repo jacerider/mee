@@ -24,8 +24,8 @@ class mee_asset_handler_edit_link_field extends mee_asset_handler_link_field {
     }
 
     $text = !empty($this->options['text']) ? $this->options['text'] : t('edit');
-    $mee_asset_id = $values->{$this->aliases['mee_asset_id']};
+    $id = $values->{$this->aliases['id']};
 
-    return l($text, 'admin/content/asset/' . $mee_asset_id . '/edit');
+    return l($text, 'admin/content/asset/' . $id . '/edit');
   }
 }

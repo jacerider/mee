@@ -88,7 +88,7 @@ function mee_asset_schema() {
   $schema['mee_asset'] = array(
     'description' => 'The base table for mee asset entities.',
     'fields' => array(
-      'mee_asset_id' => array(
+      'id' => array(
         'description' => 'Primary Key: Identifier for a mee asset.',
         'type' => 'serial',
         'unsigned' => TRUE,
@@ -135,7 +135,7 @@ function mee_asset_schema() {
         'description' => 'A serialized array of additional data.',
       ),
     ),
-    'primary key' => array('mee_asset_id'),
+    'primary key' => array('id'),
     'indexes' => array(
       'type' => array('type'),
     ),
@@ -191,11 +191,16 @@ function mee_asset_schema() {
         'not null' => TRUE,
         'description' => 'Primary Key: Unique mee asset type identifier.',
       ),
-      'mee_asset_id' => array(
+      'asset_id' => array(
         'description' => 'Mee asset ID.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'instance_id' => array(
+        'description' => 'Mee asset instance ID.',
+        'type' => 'int',
+        'unsigned' => TRUE,
       ),
       'entity_id' => array(
         'description' => 'The entity ID the assed is used within.',
@@ -203,8 +208,8 @@ function mee_asset_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'bundle' => array(
-        'description' => 'The {bundle}.type of this entity.',
+      'entity_type' => array(
+        'description' => 'The {entity}.type of this entity.',
         'type' => 'varchar',
         'length' => 32,
         'not null' => TRUE,
@@ -213,8 +218,10 @@ function mee_asset_schema() {
     ),
     'primary key' => array('id'),
     'indexes' => array(
-      'mee_asset_id' => array('mee_asset_id'),
+      'asset_id' => array('asset_id'),
+      'instance_id' => array('instance_id'),
       'entity_id' => array('entity_id'),
+      'entity_type' => array('entity_type'),
     ),
   );
 

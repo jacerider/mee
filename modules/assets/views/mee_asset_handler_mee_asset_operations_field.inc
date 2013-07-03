@@ -8,7 +8,7 @@ class mee_asset_handler_mee_asset_operations_field extends views_handler_field {
   function construct() {
     parent::construct();
 
-    $this->additional_fields['mee_asset_id'] = 'mee_asset_id';
+    $this->additional_fields['id'] = 'id';
   }
 
   function query() {
@@ -18,7 +18,7 @@ class mee_asset_handler_mee_asset_operations_field extends views_handler_field {
 
   function render($values) {
 
-    $links = menu_contextual_links('mee_asset', 'admin/content/asset', array($this->get_value($values, 'mee_asset_id')));
+    $links = menu_contextual_links('mee_asset', 'admin/content/asset', array($this->get_value($values, 'id')));
 
     if (!empty($links)) {
       return theme('links', array('links' => $links, 'attributes' => array('class' => array('links', 'inline', 'operations'))));

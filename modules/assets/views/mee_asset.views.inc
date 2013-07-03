@@ -43,7 +43,7 @@ function mee_asset_views_data_alter(&$data) {
     ),
   );
   // This content of this field are decided based on the menu structure that
-  // follows mee_assets/mee_asset/%mee_asset_id/op
+  // follows mee_assets/mee_asset/%id/op
   $data['mee_asset']['operations'] = array(
     'field' => array(
       'title' => t('Operations links'),
@@ -193,7 +193,7 @@ function mee_asset_views_default_views_admin_list() {
   $handler->display->display_options['style_plugin'] = 'table';
   $handler->display->display_options['style_options']['columns'] = array(
     'name' => 'name',
-    'mee_asset_id' => 'mee_asset_id',
+    'id' => 'id',
   );
   $handler->display->display_options['style_options']['default'] = '-1';
   $handler->display->display_options['style_options']['info'] = array(
@@ -203,7 +203,7 @@ function mee_asset_views_default_views_admin_list() {
       'align' => '',
       'separator' => '',
     ),
-    'mee_asset_id' => array(
+    'id' => array(
       'sortable' => 0,
       'default_sort_order' => 'asc',
       'align' => '',
@@ -221,24 +221,24 @@ function mee_asset_views_default_views_admin_list() {
   $handler->display->display_options['empty']['area']['empty'] = FALSE;
   $handler->display->display_options['empty']['area']['content'] = 'No mee_assets have been created yet';
   /* Field: Model: Model ID */
-  $handler->display->display_options['fields']['mee_asset_id']['id'] = 'mee_asset_id';
-  $handler->display->display_options['fields']['mee_asset_id']['table'] = 'mee_asset';
-  $handler->display->display_options['fields']['mee_asset_id']['field'] = 'mee_asset_id';
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['alter_text'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['make_link'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['absolute'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['external'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['replace_spaces'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['trim'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['nl2br'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['word_boundary'] = 1;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['ellipsis'] = 1;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['strip_tags'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['alter']['html'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['element_label_colon'] = 1;
-  $handler->display->display_options['fields']['mee_asset_id']['element_default_classes'] = 1;
-  $handler->display->display_options['fields']['mee_asset_id']['hide_empty'] = 0;
-  $handler->display->display_options['fields']['mee_asset_id']['empty_zero'] = 0;
+  $handler->display->display_options['fields']['id']['id'] = 'id';
+  $handler->display->display_options['fields']['id']['table'] = 'mee_asset';
+  $handler->display->display_options['fields']['id']['field'] = 'id';
+  $handler->display->display_options['fields']['id']['alter']['alter_text'] = 0;
+  $handler->display->display_options['fields']['id']['alter']['make_link'] = 0;
+  $handler->display->display_options['fields']['id']['alter']['absolute'] = 0;
+  $handler->display->display_options['fields']['id']['alter']['external'] = 0;
+  $handler->display->display_options['fields']['id']['alter']['replace_spaces'] = 0;
+  $handler->display->display_options['fields']['id']['alter']['trim'] = 0;
+  $handler->display->display_options['fields']['id']['alter']['nl2br'] = 0;
+  $handler->display->display_options['fields']['id']['alter']['word_boundary'] = 1;
+  $handler->display->display_options['fields']['id']['alter']['ellipsis'] = 1;
+  $handler->display->display_options['fields']['id']['alter']['strip_tags'] = 0;
+  $handler->display->display_options['fields']['id']['alter']['html'] = 0;
+  $handler->display->display_options['fields']['id']['element_label_colon'] = 1;
+  $handler->display->display_options['fields']['id']['element_default_classes'] = 1;
+  $handler->display->display_options['fields']['id']['hide_empty'] = 0;
+  $handler->display->display_options['fields']['id']['empty_zero'] = 0;
   /* Field: Model: Name */
   $handler->display->display_options['fields']['name']['id'] = 'name';
   $handler->display->display_options['fields']['name']['table'] = 'mee_asset';

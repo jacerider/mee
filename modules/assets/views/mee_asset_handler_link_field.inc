@@ -10,7 +10,7 @@ class mee_asset_handler_link_field extends views_handler_field {
   function construct() {
     parent::construct();
 
-    $this->additional_fields['mee_asset_id'] = 'mee_asset_id';
+    $this->additional_fields['id'] = 'id';
     $this->additional_fields['type'] = 'type';
   }
 
@@ -39,8 +39,8 @@ class mee_asset_handler_link_field extends views_handler_field {
 
   function render($values) {
     $text = !empty($this->options['text']) ? $this->options['text'] : t('view');
-    $mee_asset_id = $values->{$this->aliases['mee_asset_id']};
+    $id = $values->{$this->aliases['id']};
 
-    return l($text, 'asset/' . $mee_asset_id);
+    return l($text, 'asset/' . $id);
   }
 }

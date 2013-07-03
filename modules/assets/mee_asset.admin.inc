@@ -252,8 +252,8 @@ function mee_asset_edit_form_submit_ajax($form, $form_state) {
   module_load_include('inc','mee_asset','mee_asset.page');
   $commands = mee_asset_browser( $form_state['mee_asset']->type, TRUE, TRUE );
   // Flush js cache so new element is updated
-  if(!empty($form_state['mee_asset']->mee_asset_id)){
-    $commands[] = mee_asset_ajax_command_asset_clear_cache($form_state['mee_asset']->type, $form_state['mee_asset']->mee_asset_id);
+  if(!empty($form_state['mee_asset']->id)){
+    $commands[] = mee_asset_ajax_command_asset_clear_cache($form_state['mee_asset']->type, $form_state['mee_asset']->id);
   }
   $page = array('#type' => 'ajax', '#commands' => $commands);
   ajax_deliver($page);
@@ -290,7 +290,7 @@ function mee_asset_edit_form_submit(&$form, &$form_state) {
   $mee_asset->save();
 
   if($form_state['js']){
-    if(empty($mee_asset->mee_asset_id)){
+    if(empty($mee_asset->id)){
       drupal_set_message('Asset created successfully.');
     }else{
       drupal_set_message('Asset updated successfully.');
@@ -307,7 +307,7 @@ function mee_asset_edit_form_submit(&$form, &$form_state) {
  * @todo Remove hard-coded path
  */
 function mee_asset_form_submit_delete(&$form, &$form_state) {
-  $form_state['redirect'] = 'admin/content/asset/' . $form_state['mee_asset']->mee_asset_id . '/delete';
+  $form_state['redirect'] = 'admin/content/asset/' . $form_state['mee_asset']->id . '/delete';
 }
 
 

@@ -42,14 +42,12 @@ function mee_asset_browser( $type, $js = FALSE, $return_commands = FALSE ) {
  *
  * @author JaceRider
  *
- * @param  $type
- *   The asset entity bundle.
  * @param  $id
  *   The entity ID.
  * @param  $js
  *   Boolean if is a javascript request.
  */
-function mee_asset_view( $type, $id, $js = FALSE ){
+function mee_asset_view( $id, $js = FALSE ){
 
   $output = array();
 
@@ -57,7 +55,7 @@ function mee_asset_view( $type, $id, $js = FALSE ){
   if($asset){
     $output['view'] = entity_view('mee_asset', array($asset), $view_mode = 'full');
   }else{
-    $output['view'] = array('#markup' => '<div class="alert">'.t('Asset not found.').' (type: '.$type.', id: '.$id.')</div>');
+    $output['view'] = array('#markup' => '<div class="alert">'.t('Asset not found.').' (id: '.$id.')</div>');
   }
 
   if( $js != 'ajax'){
@@ -65,7 +63,7 @@ function mee_asset_view( $type, $id, $js = FALSE ){
   }
 
   $commands = array();
-  $commands[] = mee_asset_ajax_command_asset_insert('.asset-'.$type.'-'.$id, drupal_render($output));
+  $commands[] = mee_asset_ajax_command_asset_insert('.asset-'.$id, drupal_render($output));
   $page = array('#type' => 'ajax', '#commands' => $commands);
   ajax_deliver($page);
   exit;
@@ -76,14 +74,12 @@ function mee_asset_view( $type, $id, $js = FALSE ){
  *
  * @author JaceRider
  *
- * @param  $type
- *   The asset entity bundle.
  * @param  $id
  *   The entity ID.
  * @param  $js
  *   Boolean if is a javascript request.
  */
-function mee_asset_remove( $type, $id, $js = FALSE ){
+function mee_asset_remove( $id, $js = FALSE ){
 
   $output = array();
 
@@ -96,8 +92,17 @@ function mee_asset_remove( $type, $id, $js = FALSE ){
     '#markup' => '<h3>' . t('Delete') . ' ' . $asset->name . '</h3>'
   );
   $output['message'] = array(
-    '#markup' => '<div class="alert">' . t('Are you sure you want to delete this asset?') . '</div>'
+    '#markup' => '<div class="lead">' . t('Are you sure you want to delete this asset?') . '</div>'
   );
+  if($usage = mee_asset_usage_list( $asset->id )){
+    $output['usage'] = array(
+      '#markup' => '<div class="alert alert-error"><h4>Warning!</h4>' . $usage . '</div>'
+    );
+  }else{
+    $output['usage'] = array(
+      '#markup' => '<div class="alert alert-info"><h4>No Worries</h4>' . t('This asset is not used anywhere on your site.') . ' <strong> ' . t('Feel at peace as you delete it.') . '</strong> ' . t('This action cannot be undone.') . '</div>'
+    );
+  }
   $output['form'] = drupal_get_form('mee_asset_remove_form', $asset);
 
   if( $js != 'ajax'){

@@ -24,8 +24,8 @@ class mee_asset_handler_delete_link_field extends mee_asset_handler_link_field {
     }
 
     $text = !empty($this->options['text']) ? $this->options['text'] : t('delete');
-    $mee_asset_id = $values->{$this->aliases['mee_asset_id']};
+    $id = $values->{$this->aliases['id']};
 
-    return l($text, 'admin/content/asset/' . $mee_asset_id . '/delete');
+    return l($text, 'admin/content/asset/' . $id . '/delete');
   }
 }
