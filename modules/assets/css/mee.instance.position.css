@@ -1,0 +1,18 @@
+.asset-position-left{
+  float:left;
+  padding:0 20px 20px 0;
+}
+
+.asset-position-right{
+  float:right;
+  padding:0 0 20px 20px;
+}
+
+.asset-position-center{
+  padding-bottom:20px;
+}
+
+.asset-position-center img{
+  margin:0 auto;
+  display:block;
+}

@@ -183,6 +183,25 @@ function mee_asset_schema() {
     ),
   );
 
+  $schema['mee_asset_instance'] = array(
+    'description' => 'Instance settings for an asset.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique mee asset type identifier.',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this mee asset type.',
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
   $schema['mee_asset_usage'] = array(
     'description' => 'Track where a Mee entity is used.',
     'fields' => array(

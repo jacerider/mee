@@ -3,6 +3,7 @@
 function mee_iframe_page(){
   //drupal_add_css(drupal_get_path('module', 'mee').'/css/mee.scss');
   drupal_add_css(drupal_get_path('module', 'mee').'/css/application.css');
+  module_invoke_all('mee_iframe');
   $options = array();
   return theme('mee_iframe', array('iframe' => $options));
 }

@@ -81,6 +81,48 @@ function mee_asset_type_form($form, &$form_state, $mee_asset_type, $op = 'edit')
     '#description' => t('The keyboard shortcut that can be used to access this button. Example: ctrl+b.'),
     '#default_value' => empty($mee_asset_type->data['shortcut']) ? '' : $mee_asset_type->data['shortcut'],
   );
+  $instances = mee_get_plugin('instance');
+  if(!empty($instances)){
+    $form['data']['instances'] = array(
+      '#tree' => TRUE,
+      '#access' => FALSE,
+      '#type' => 'fieldset',
+      '#title' => t('Instance options'),
+      '#description' => t('An asset can have instance settings. These settings allow changes per asset on an individual implementation.') . '<hr /><br />',
+    );
+  }
+  foreach($instances as $instance){
+    $handler = _mee_get_handler('instance', $instance['name']);
+    $form['data']['instances'][$instance['name']] = array(
+      '#type' => 'checkbox',
+      '#title' => $instance['title'],
+      '#default_value' => empty($mee_asset_type->data['instances'][$instance['name']]) ? 0 : 1,
+      '#description' => !empty($instance['description']) ? $instance['description'] : NULL,
+    );
+
+    $settings_defaults = !empty($mee_asset_type->data['instances'][$instance['name']]) ? $mee_asset_type->data['instances'][$instance['name']] : array();
+    $settings_form = array();
+    $handler->settings_form($settings_form, $form_state, $settings_defaults);
+    if(!empty($settings_form)){
+
+      $form['data']['instances'][$instance['name'].'_settings'] = array(
+        '#tree' => TRUE,
+        '#type' => 'fieldset',
+        '#title' => $instance['title'] . ' ' . t('Settings'),
+      );
+
+      $form['data']['instances'][$instance['name'].'_settings']['#states'] = array(
+        'visible' => array(
+          ':input[name="data[instances]['.$instance['name'].']"]' => array('checked' => TRUE),
+        ),
+      );
+
+      $form['data']['instances'][$instance['name'].'_settings'] += $settings_form;
+
+    }
+
+    $form['data']['instances']['#access'] = TRUE;
+  }
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -100,6 +142,27 @@ function mee_asset_type_form($form, &$form_state, $mee_asset_type, $op = 'edit')
     );
   }*/
   return $form;
+}
+
+/**
+ * Form API validate callback for the type form.
+ */
+function mee_asset_type_form_validate(&$form, &$form_state) {
+  if(@is_array($form_state['values']['data']['instances'])){
+    foreach($form_state['values']['data']['instances'] as $key => &$value){
+      if($value === 1){
+        // If instance is active, merge settings with primary key.
+        if(isset($form_state['values']['data']['instances'][$key . '_settings'])){
+          $value = $form_state['values']['data']['instances'][$key . '_settings'];
+          unset($form_state['values']['data']['instances'][$key . '_settings']);
+        }
+      }else{
+        // If instance settings aren't active, remove instance.
+        unset($form_state['values']['data']['instances'][$key]);
+        unset($form_state['values']['data']['instances'][$key . '_settings']);
+      }
+    }
+  }
 }
 
 /**

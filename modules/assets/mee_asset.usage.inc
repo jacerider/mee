@@ -23,6 +23,9 @@ function mee_asset_usage_validate($element, &$form_state, $form){
     $keys = entity_extract_ids($entity_type, $form['#entity']);
     $entity_id = $keys[0];
     mee_asset_usage_check($value, $entity_type, $entity_id);
+    // Clean up orphan assets
+    // @TODO Maybe this would be better done via cron
+    mee_asset_instance_clean();
   }
 }
 
@@ -35,40 +38,57 @@ function mee_asset_usage_check($text, $entity_type, $entity_id){
   $currents = mee_asset_matches( $text );
   $pasts = array();
   foreach(mee_asset_usage_load_by_entity($entity_type, $entity_id) as $past){
-    $pasts[$past->asset_id] = $past;
+    $key = $past->asset_id;
+    if(!empty($past->instance_id)) $key .= '-' . $past->instance_id;
+    $pasts[$key] = $past;
   }
   $remove = array();
   $add = array();
   $keep = array();
   // Get removed assets
   foreach($pasts as $past){
-    if(!isset($currents[$past->asset_id])){
-      $remove[] = $past;
-      mee_asset_usage_delete($past->asset_id, $entity_type, $entity_id);
+    $key = $past->asset_id;
+    if(!empty($past->instance_id)) $key .= '-' . $past->instance_id;
+    if(!isset($currents[$key])){
+      // $remove[] = $past;
+      mee_asset_usage_delete($past->id);
     }
   }
   // Get new assets
   foreach($currents as $current){
-    if(!isset($pasts[$current->id])){
-      $add[] = $current;
-      mee_asset_usage_save($current->id, $entity_type, $entity_id);
+    // If empty, this is a deleted asset
+    if(empty($current)){
+      continue;
+    }
+    $key = $current->id;
+    $instance_id = !empty($current->instance_id) ? $current->instance_id : NULL;
+    if($instance_id) $key .= '-' . $instance_id;
+    if(!isset($pasts[$key])){
+      // $add[] = $current;
+      mee_asset_usage_save($current->id, $entity_type, $entity_id, $instance_id);
     }else{
-      $keep[] = $current;
+      // $keep[] = $current;
     }
   }
-  dsm($currents);
-  dsm($pasts);
-  dsm('Remove:');
-  dsm($remove);
-  dsm('Add:');
-  dsm($add);
-  dsm('Keep:');
-  dsm($keep);
+  // dsm($currents);
+  // dsm($pasts);
+  // dsm('Remove:');
+  // dsm($remove);
+  // dsm('Add:');
+  // dsm($add);
+  // dsm('Keep:');
+  // dsm($keep);
 
 }
 
 function mee_asset_usage_list($asset_id){
   if($assets = mee_asset_usage_load_by_asset_id( $asset_id )){
+    // Remove references to same content item
+    $existing = array();
+    foreach($assets as $key => $asset){
+      if(!empty($existing[$asset->entity_id])) unset($assets[$key]);
+      $existing[$asset->entity_id] = $asset->entity_id;
+    }
     $output = t('This asset is also used in the following content items:');
     $count = 0;
     $display = 0;
@@ -108,11 +128,12 @@ function mee_asset_usage_list($asset_id){
 /**
  * Usage save
  */
-function mee_asset_usage_save($asset_id, $entity_type, $entity_id){
+function mee_asset_usage_save($asset_id, $entity_type, $entity_id, $instance_id = NULL){
   $record = array(
     'asset_id' => $asset_id,
-    'entity_id' => $entity_id,
     'entity_type' => $entity_type,
+    'entity_id' => $entity_id,
+    'instance_id' => $instance_id,
   );
   drupal_write_record('mee_asset_usage', $record);
 }
@@ -120,11 +141,9 @@ function mee_asset_usage_save($asset_id, $entity_type, $entity_id){
 /**
  * Usage delete
  */
-function mee_asset_usage_delete($asset_id, $entity_type, $entity_id){
+function mee_asset_usage_delete($id){
     db_delete('mee_asset_usage')
-      ->condition('asset_id', $asset_id)
-      ->condition('entity_type', $entity_type)
-      ->condition('entity_id', $entity_id)
+      ->condition('id', $id)
       ->execute();
 }
 
@@ -142,11 +161,16 @@ function mee_asset_usage_load_by_asset_id($asset_id) {
 /**
  * Loads usage records by asset_id.
  */
-function mee_asset_usage_load_by_entity($entity_type, $entity_id) {
-  return db_select('mee_asset_usage', 'u')
+function mee_asset_usage_load_by_entity($entity_type, $entity_id, $limit = FALSE) {
+  $query = db_select('mee_asset_usage', 'u')
     ->fields('u')
     ->condition('entity_type', $entity_type)
-    ->condition('entity_id', $entity_id)
-    ->execute()
+    ->condition('entity_id', $entity_id);
+
+  if($limit){
+    $query->range(0,1);
+  }
+
+  return $query->execute()
     ->fetchAll();
 }

@@ -19,15 +19,44 @@ Drupal.behaviors.mee_asset = {
     e.preventDefault();
     var $this = $(this);
     var id = $this.attr('data-id');
+    var instance = $this.attr('data-instance');
+    if( instance == 1 ){
+
+      //var placeholder = $('<div id="asset-instance"><div class="mee-loader"><div><i class="icon-mee-spinner animate-spin"></i> Loading asset options...</div></div></div>');
+      //$('#asset-browser').html( placeholder );
+
+      // Setup AJAX request
+      var element_settings = {
+          url           : '/asset/instance/' + id + '/ajax'
+        , event       : 'onload'
+        , keypress    : false
+        , prevent     : false
+        , progress    : { 'type' : 'throbber' }
+      };
+
+      var base = $this.attr('id');
+      Drupal.ajax[base] = new Drupal.ajax(base, $this, element_settings);
+
+      // Trigger AJAX request
+      $this.trigger('onload');
+
+    }else{
+      Drupal.behaviors.mee_asset.assetInsert(id);
+    }
+  },
+
+  assetInsert: function (id, instance){
+    var self = this;
+    var token = '[asset-' + id;
+    if(instance) token += '-' + instance;
+    token += ']';
     // This text will be automatically selected
     var ss = $.fn.meeActive.meeSelection;
     var widget = $.fn.meeActive.meeWidget;
-    ss.before = ss.before + '[asset-' + id + ']';
+    ss.before = ss.before + token;
     // Text that will be displayed after the selected text
     ss.selectionSet();
     widget.hide();
-    //delete ss;
-    //delete widget;
   }
 }
 
@@ -81,13 +110,15 @@ $.fn.meeCommands.asset = function () {
  * Token Replacment -- Runs AFTER conversion to markup
  */
 $.fn.meeReplace.after.asset = function ( text ) {
-  var regex = new RegExp("(\\[asset-[0-9]+\\])","g");
+  var regex = new RegExp("(\\[asset-[0-9]+(-[0-9]+)?\\])","g");
   var match;
   text = text.replace(regex, function(match, text){
-    regex = new RegExp("\\[asset-([0-9]+)\\]",["i"]);
+    regex = new RegExp("\\[asset-([0-9]+)-?([0-9]+)?\\]",["i"]);
     var parts = match.match(regex);
     var id = parts[1];
-    return text.replace(regex, '<div class="asset-loader asset-' + id + '" data-id="' + id + '"><div class="asset-loading"><div><i class="icon-mee-spinner animate-spin"></i> This will be replace by asset with id ' + id + '</div></div></div>');
+    var instance = parts[2] ? parts[2] : 0;
+    var base = id + '-' + instance;
+    return text.replace(regex, '<div class="asset-loader asset-' + base + '" ' + (!instance ? '' : 'data-instance="' + instance + '"')  + ' data-id="' + id + '"><div class="asset-loading"><div><i class="icon-mee-spinner animate-spin"></i> This will be replace by asset with id ' + id + '</div></div></div>');
   });
   return text;
 }
@@ -100,11 +131,13 @@ $.fn.meeReplace.finish.asset = function ( meeObject ) {
   $('.asset-loader', meeObject.mee.preview).once(function(){
     var $this = $(this);
     var id = $this.attr('data-id');
-    var base = id;
+    var instance = $this.attr('data-instance');
+    instance = instance ? instance : 0;
+    var base = id + '-' + instance;
 
     // Setup AJAX request
     var element_settings = {
-        url         : '/asset/view/' + id + '/ajax'
+        url         : '/asset/view/' + id + '/' + instance + '/ajax'
       , event       : 'onload'
       , keypress    : false
       , prevent     : false
@@ -116,11 +149,12 @@ $.fn.meeReplace.finish.asset = function ( meeObject ) {
     // Use cache if asset has already been loaded
     if(Drupal.behaviors.mee_asset.cache[base]){
       var response = {
-          method    : 'html'
-        , selector  : '.asset-' + id
-        , data      : Drupal.behaviors.mee_asset.cache[base]
+          method      : 'html'
+        , asset_id    : id
+        , instance_id : instance
+        , data        : Drupal.behaviors.mee_asset.cache[base]
       };
-      Drupal.ajax.prototype.commands.assetInsert(element_settings, response, 1);
+      Drupal.ajax.prototype.commands.assetPreviewInsert(element_settings, response, 1);
     }
     else {
       if(Drupal.behaviors.mee_asset.processed[base]){
@@ -137,12 +171,19 @@ $.fn.meeReplace.finish.asset = function ( meeObject ) {
 }
 
 /******************************************************************************
- *  Drupal AJAX command for inserting into iframe
+ *  Drupal AJAX command for inserting into editor
  */
 Drupal.ajax.prototype.commands.assetInsert = function (ajax, response, status) {
-  var wrapper = response.selector ? $(response.selector, ajax.meeObject.mee.preview) : $(ajax.wrapper);
+  Drupal.behaviors.mee_asset.assetInsert(response.asset_id, response.instance_id);
+}
+
+/******************************************************************************
+ *  Drupal AJAX command for inserting into iframe
+ */
+Drupal.ajax.prototype.commands.assetPreviewInsert = function (ajax, response, status) {
+  var base = response.asset_id + '-' + response.instance_id;
+  var wrapper = $('.asset-' + base, ajax.meeObject.mee.preview);
   var method = response.method || ajax.method;
-  var base = ajax.asset_id;
 
   var new_content_wrapped = $('<div></div>').html(response.data);
   var new_content = new_content_wrapped.contents();
@@ -168,9 +209,14 @@ Drupal.ajax.prototype.commands.assetInsert = function (ajax, response, status) {
  *  Drupal AJAX command for inserting into iframe
  */
 Drupal.ajax.prototype.commands.assetCacheClear = function (ajax, response, status) {
-  var base = response.id;
-  delete Drupal.behaviors.mee_asset.processed[base];
-  delete Drupal.behaviors.mee_asset.cache[base];
+  var base = response.asset_id;
+  for(i in Drupal.behaviors.mee_asset.cache){
+    var parts = i.split('-');
+    if(base == parts[0]){
+      delete Drupal.behaviors.mee_asset.processed[i];
+      delete Drupal.behaviors.mee_asset.cache[i];
+    }
+  }
 }
 
 })(jQuery);

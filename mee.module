@@ -263,11 +263,13 @@ function mee_ctools_plugin_directory($module, $plugin) {
 * Has plenty options. See ctools/help/plugins-creating.html
 */
 function mee_ctools_plugin_type() {
-  return array(
+  $plugins = array(
     'buttons' => array(
       'classes' => array('class'),
     ),
   );
+  drupal_alter('mee_plugin_types', $plugins);
+  return $plugins;
 }
 
 /**

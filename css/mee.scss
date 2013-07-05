@@ -129,7 +129,7 @@
 }
 
 .mee-widget{
-  font-family: BentonSans,"Lucida Sans","Lucida Grande",sans-serif;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
   position: fixed;
   width: 760px;
   height: 460px;
@@ -181,6 +181,17 @@
       -o-animation: spin 2s infinite linear;
       -webkit-animation: spin 2s infinite linear;
       animation: spin 2s infinite linear;
+    }
+  }
+
+  h3{
+    font-size: 21px;
+    font-weight: 200;
+    line-height: 30px;
+    color:#767676;
+
+    strong{
+      color:#656565;
     }
   }
 

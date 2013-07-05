@@ -38,7 +38,15 @@ class mee_asset_handler_asset_select_field extends views_handler_field {
   }
 
   function render($values) {
-    $output = '<a class="asset-select" href="#" data-id="'.$values->id.'">Select</a>';
+    $bundle = entity_load('mee_asset_type', array($values->mee_asset_type));
+    $instance_enabled = 0;
+    if(!empty($bundle)){
+      $bundle = $bundle[key($bundle)];
+      if(array_filter($bundle->data['instances'])){
+        $instance_enabled = 1;
+      }
+    }
+    $output = '<a id="asset-select-'.$values->id.'" class="asset-select" href="#" data-instance="'.$instance_enabled.'" data-id="'.$values->id.'">Select</a>';
     if(mee_asset_access('update', $values->mee_asset_type)){
       $output .= l('<i class="icon-mee-pencil"></i>', 'admin/content/asset/'.$values->id.'/edit/nojs', array('html'=>true, 'attributes'=>array('class'=>array('asset-edit', 'use-ajax', 'btn','btn-mini','btn-info'))));
     }

@@ -253,7 +253,7 @@ function mee_asset_edit_form_submit_ajax($form, $form_state) {
   $commands = mee_asset_browser( $form_state['mee_asset']->type, TRUE, TRUE );
   // Flush js cache so new element is updated
   if(!empty($form_state['mee_asset']->id)){
-    $commands[] = mee_asset_ajax_command_asset_clear_cache($form_state['mee_asset']->type, $form_state['mee_asset']->id);
+    $commands[] = mee_asset_ajax_command_asset_clear_cache($form_state['mee_asset']->id);
   }
   $page = array('#type' => 'ajax', '#commands' => $commands);
   ajax_deliver($page);
