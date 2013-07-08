@@ -46,7 +46,7 @@ function mee_asset_type_form($form, &$form_state, $mee_asset_type, $op = 'edit')
     '#type' => 'machine_name',
     '#default_value' => isset($mee_asset_type->type) ? $mee_asset_type->type : '',
     '#maxlength' => 32,
-//    '#disabled' => $mee_asset_type->isLocked() && $op != 'clone',
+    //'#disabled' => $mee_asset_type->isLocked() && $op != 'clone',
     '#machine_name' => array(
       'exists' => 'mee_asset_get_types',
       'source' => array('label'),

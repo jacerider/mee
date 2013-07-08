@@ -77,11 +77,14 @@ function mee_asset_views_default_views() {
 function mee_asset_views_default_views_browser( $bundle ){
 
   $info = field_info_instances('mee_asset', $bundle->type);
-  $has_image = FALSE;
+  $has_image = $has_file = FALSE;
   foreach($info as $field){
     switch($field['widget']['type']){
       case 'image_image':
         $has_image = TRUE;
+        break;
+      case 'file_generic':
+        $has_file = TRUE;
         break;
     }
   }
@@ -136,6 +139,16 @@ function mee_asset_views_default_views_browser( $bundle ){
       'image_style' => 'asset-thumb',
       'image_link' => '',
     );
+  }
+  /* Field: Asset: File */
+  if($has_file){
+    $handler->display->display_options['fields']['field_asset_file']['id'] = 'field_asset_file';
+    $handler->display->display_options['fields']['field_asset_file']['table'] = 'field_data_field_asset_file';
+    $handler->display->display_options['fields']['field_asset_file']['field'] = 'field_asset_file';
+    $handler->display->display_options['fields']['field_asset_file']['label'] = '';
+    $handler->display->display_options['fields']['field_asset_file']['element_label_colon'] = FALSE;
+    $handler->display->display_options['fields']['field_asset_file']['click_sort_column'] = 'fid';
+    $handler->display->display_options['fields']['field_asset_file']['type'] = 'file_mime_type_icon';
   }
   /* Field: Asset: Asset Select */
   $handler->display->display_options['fields']['asset_select']['id'] = 'asset_select';

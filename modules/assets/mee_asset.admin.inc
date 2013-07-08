@@ -179,7 +179,7 @@ function mee_asset_edit_form($form, &$form_state, $mee_asset, $js) {
   // Add the default field elements.
   $form['name'] = array(
     '#type' => 'textfield',
-    '#title' => t('Mee Asset Name'),
+    '#title' => t('Asset Name'),
     '#default_value' => isset($mee_asset->name) ? $mee_asset->name : '',
     '#maxlength' => 255,
     '#required' => TRUE,
@@ -249,15 +249,19 @@ function mee_asset_edit_form($form, &$form_state, $mee_asset, $js) {
 }
 
 function mee_asset_edit_form_submit_ajax($form, $form_state) {
-  module_load_include('inc','mee_asset','mee_asset.page');
-  $commands = mee_asset_browser( $form_state['mee_asset']->type, TRUE, TRUE );
-  // Flush js cache so new element is updated
-  if(!empty($form_state['mee_asset']->id)){
-    $commands[] = mee_asset_ajax_command_asset_clear_cache($form_state['mee_asset']->id);
+  if(!form_get_errors()){
+    module_load_include('inc','mee_asset','mee_asset.page');
+    $commands = mee_asset_browser( $form_state['mee_asset']->type, TRUE, TRUE );
+    // Flush js cache so new element is updated
+    if(!empty($form_state['mee_asset']->id)){
+      $commands[] = mee_asset_ajax_command_asset_clear_cache($form_state['mee_asset']->id);
+    }
+    $page = array('#type' => 'ajax', '#commands' => $commands);
+    ajax_deliver($page);
+    exit;
+  }else{
+    return $form;
   }
-  $page = array('#type' => 'ajax', '#commands' => $commands);
-  ajax_deliver($page);
-  exit;
 }
 
 

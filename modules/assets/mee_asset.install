@@ -40,6 +40,14 @@ function mee_asset_install_bundle($type, $label, $icon, $tip = NULL, $shortcut =
     $params['data']['icon'] = $icon;
     $params['data']['tip'] = $tip;
     $params['data']['shortcut'] = $shortcut;
+    $params['data']['instances']['image_style']['image_styles']['thumbnail']['enabled'] = 1;
+    $params['data']['instances']['image_style']['image_styles']['thumbnail']['label'] = 'Thumbnail';
+    $params['data']['instances']['image_style']['image_styles']['medium']['enabled'] = 1;
+    $params['data']['instances']['image_style']['image_styles']['medium']['label'] = 'Medium';
+    $params['data']['instances']['image_style']['image_styles']['large']['enabled'] = 1;
+    $params['data']['instances']['image_style']['image_styles']['large']['label'] = 'Large';
+    $params['data']['instances']['position'] = 1;
+    $params['data']['instances']['preview'] = 1;
     $bundle = $controller->create($params);
     $controller->save($bundle);
     return TRUE;
@@ -379,7 +387,7 @@ function mee_asset_install_bundle_image_fields(){
         'retroactive_update' => 0,
         'active_updating' => 0,
         'file_name' => array(
-          'value' => '[mee_asset:mee-asset-id]-[file:fid]-[mee_asset:name].[file:ffp-extension-original]',
+          'value' => '[mee_asset:id]-[file:fid]-[mee_asset:name].[file:ffp-extension-original]',
           'options' => array(
             'pathauto' => 1,
             'transliterate' => 0,

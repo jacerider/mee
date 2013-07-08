@@ -110,9 +110,14 @@ function mee_asset_instance_form($form, &$form_state, $asset){
   $bundle = mee_asset_type_load($asset->type);
   $form_state['bundle'] = $bundle;
   if($active = array_filter($bundle->data['instances'])){
+    $instances = mee_get_plugin('instance');
     foreach($active as $instance_type => $settings){
       $handler = _mee_get_handler('instance', $instance_type);
       $form['data']['#tree'] = TRUE;
+      $instance = $instances[$instance_type];
+      if(!empty($instance['css_admin'])){
+        $form['data']['#attached']['css'][] = drupal_get_path('module', $instance['module']) . '/' . $instance['css_admin'];
+      }
       $handler->instance_form($form['data'], $form_state, $settings);
     }
   }

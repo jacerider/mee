@@ -26,6 +26,17 @@ class Mee_InstanceHandler_ImageStyle extends Mee_InstanceHandler_Abstract {
           ':input[name="data[instances][image_style_settings][image_styles]['.$id.'][enabled]"]' => array('checked' => TRUE),
         ),
       );
+      $form['image_styles'][$id]['preview'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Preview style markup'),
+        '#default_value' => empty($defaults['image_styles'][$id]['preview']) ? 'font-size:34px;' : $defaults['image_styles'][$id]['preview'],
+      );
+      $form['image_styles'][$id]['preview']['#states'] = array(
+        'visible' => array(
+          ':input[name="data[instances][image_style_settings][image_styles]['.$id.'][enabled]"]' => array('checked' => TRUE),
+          ':input[name="data[instances][preview]"]' => array('checked' => TRUE),
+        ),
+      );
     }
   }
 
@@ -35,12 +46,17 @@ class Mee_InstanceHandler_ImageStyle extends Mee_InstanceHandler_Abstract {
       if(empty($data['enabled'])) continue;
       $options[$id] = !empty($data['label']) ? t($data['label']) : $id;
     }
-
     $form['image_style'] = array(
       '#type' => 'select',
       '#title' => t('Image Style'),
       '#options' => $options,
       '#required' => TRUE,
+      '#ajax' => array(
+        'callback' => 'mee_asset_instance_form_preview_ajax',
+        'wrapper' => 'asset-instance-form',
+        'method' => 'replace',
+        'effect' => 'none',
+      ),
     );
   }
 
@@ -54,6 +70,13 @@ class Mee_InstanceHandler_ImageStyle extends Mee_InstanceHandler_Abstract {
         }
       }
     }
+  }
+
+  public function preview( &$element, $values, $settings ){
+    if(!empty($values['image_style'])){
+      $element['placeholder']['#attributes']['style'] .= $settings['image_styles'][$values['image_style']]['preview'];
+    }
+
   }
 
 }
