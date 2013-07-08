@@ -16,9 +16,57 @@
       "src": "fontawesome"
     },
     {
+      "uid": "17ebadd1e3f274ff0205601eef7b9cc4",
+      "css": "mee-help-circled",
+      "code": 59421,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "e82cedfa1d5f15b00c5a81c9bd731ea2",
+      "css": "mee-info-circled",
+      "code": 59420,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "0d6ab6194c0eddda2b8c9cedf2ab248e",
+      "css": "mee-attach",
+      "code": 59419,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "3db5347bd219f3bce6025780f5d9ef45",
+      "css": "mee-tag",
+      "code": 59418,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "f04a5d24e9e659145b966739c4fde82a",
+      "css": "mee-bookmark",
+      "code": 59417,
+      "src": "fontawesome"
+    },
+    {
       "uid": "7034e4d22866af82bef811f52fb1ba46",
       "css": "mee-code",
       "code": 59399,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "d35a1d35efeb784d1dc9ac18b9b6c2b6",
+      "css": "mee-pencil",
+      "code": 59422,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "5408be43f7c42bccee419c6be53fdef5",
+      "css": "mee-doc-text",
+      "code": 59416,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "c08a1cde48d96cba21d8c05fa7d7feb1",
+      "css": "mee-doc-text-inv",
+      "code": 59410,
       "src": "fontawesome"
     },
     {
@@ -68,6 +116,36 @@
       "css": "mee-ol",
       "code": 59395,
       "src": "fontawesome"
+    },
+    {
+      "uid": "8fb55fd696d9a0f58f3b27c1d8633750",
+      "css": "mee-table",
+      "code": 59413,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "0bda4bc779d4c32623dec2e43bd67ee8",
+      "css": "mee-gauge",
+      "code": 59415,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "6fe95ffc3c807e62647d4f814a96e0d7",
+      "css": "mee-sitemap",
+      "code": 59414,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "bbd66ef66bb8fa9edde54d9a90b89150",
+      "css": "mee-user",
+      "code": 59411,
+      "src": "entypo"
+    },
+    {
+      "uid": "ecf8edb95c3f45eb433b4cce7ba9f740",
+      "css": "mee-users",
+      "code": 59412,
+      "src": "entypo"
     },
     {
       "uid": "815503841e980c848f55e0271deacead",
