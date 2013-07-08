@@ -1,0 +1,16 @@
+# Normal OS hidden files & IDE
+.DS_Store
+.svn
+._*
+*~
+*.swp
+.project
+.projectOptions
+.settings
+.buildpath
+nbproject
+*.sublime*
+
+
+# Ignore sass-cache files.
+*.sass-cache*
