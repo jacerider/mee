@@ -1,0 +1,19 @@
+.asset-preview{
+  position:absolute;
+  top:60px;
+  right:0;
+  background:#3f3f3f;
+  color:#fff;
+  padding:20px;
+  width:40%;
+  font-size:11px;
+  text-align: justify;
+
+  .asset-placeholder{
+    font-size:34px;
+    background:#7f7f7f;
+    padding:10px;
+    margin-bottom:10px;
+    text-align: center;
+  }
+}

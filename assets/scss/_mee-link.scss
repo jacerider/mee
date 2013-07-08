@@ -1,0 +1,18 @@
+/**
+ * MEE Link
+ */
+#mee-link-browser{
+
+  fieldset{
+    position:relative;
+  }
+
+  #linkit-modal{
+    padding:0;
+
+    .better-autocomplete{
+      left:15px !important;
+      top:54px !important;
+    }
+  }
+}

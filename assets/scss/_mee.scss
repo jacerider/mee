@@ -1,0 +1,343 @@
+@import "compass";
+@include font-face("mee", font-files("mee.ttf", "mee.otf", "mee.eot", "mee.svg"));
+
+.mee-loader{
+  background:#3F3F3F;
+  @include border-radius(5px);
+  color:#fff;
+  text-align: center;
+  font-size: 14px;
+
+  div{
+    padding:20px;
+  }
+}
+
+.mee-wrapper{
+
+  .mee-wrapper-inner{
+    display:none;
+  }
+
+  .mee-textarea-wrapper{
+    .mee-textarea{
+      border:0;
+      background:rgb(41,41,41);
+      font-family:monospace;
+      font-size:14px;
+      color:#ddd;
+      line-height:1.35em;
+      margin-bottom:0;
+      resize:none;
+      vertical-align: top;
+      @include transition(height 0.2s);
+      width:100%;
+      padding:10px;
+    }
+  }
+  .mee-toolbar{
+    margin:0 0 5px;
+    padding:8px;
+    background:#3f3f3f;
+    @include border-radius(5px);
+
+    label{
+      font-size:9.5px;
+      line-height:normal;
+      text-shadow: 0 1px 0 #fff;
+      text-transform: uppercase;
+      font-weight: bold;
+      margin:0;
+      padding:0 0 0 5px;
+      color:#9c9c9c;
+    }
+    label{
+      color:#bfbfbf;
+      text-shadow: 0 -1px 0 #000;
+    }
+    &.labels-hide label{
+      display:none;
+    }
+    .mee-group{
+      display:inline-block;
+    }
+    .mee-group + .mee-group{
+      margin-left:5px;
+    }
+  }
+  .mee-clear{
+    clear:both;
+  }
+  .mee-preview{
+    display:block;
+    width:100%;
+    border:none;
+    @include border-radius(5px);
+    @include transition(height 0.2s);
+  }
+  .mee-border{
+    padding:0;
+  }
+  .mee-editor-inner{
+    padding:8px;
+  }
+}
+
+/**
+ * Iframe
+ */
+.mee-iframe{
+  margin:0;
+  padding:0;
+  //background:#fff;
+  .mee-iframe-content{
+    padding:10px;
+  }
+}
+
+/**
+ * Views
+ */
+.mee-view-split{
+  .mee-textarea-wrapper{
+    width: 50%;
+    float:left;
+  }
+  .mee-preview-wrapper{
+    width:50%;
+    float:left;
+
+    iframe{
+      margin-left:5px;
+    }
+  }
+}
+
+/**
+ * Fullscreen
+ */
+:-webkit-full-screen,
+:-moz-full-screen {
+  background: #292929;
+}
+
+.mee-full{
+  background: #d0d0d0;
+  position:relative;
+
+  .mee-wrapper-inner{
+    position:absolute;
+    top:10px;
+    left:10px;
+    right:10px;
+    bottom:-10px;
+    margin:0;
+
+    .mee-border{
+      position:absolute;
+      top:0;
+      right:0;
+      bottom:0;
+      left:0;
+    }
+
+    .mee-editor-inner{
+      position:absolute;
+      top:8px;
+      left:8px;
+      right:8px;
+      bottom:8px;
+      padding:0;
+    }
+
+    .mee-textarea-wrapper{
+      position:absolute;
+      top:45px;
+      left:0;
+      bottom:0;
+      margin:0;
+      padding:0;
+      width:50%;
+
+      .mee-textarea{
+        margin:0;
+        width:100% !important;
+        height:100% !important;
+        resize: vertical !important;
+        overflow: auto !important;
+        // @include border-radius(0);
+      }
+    }
+
+    .mee-preview-wrapper{
+      position:absolute;
+      top:45px;
+      right:0;
+      bottom:0;
+      margin:0;
+      padding:0;
+      width:50%;
+
+      .mee-preview{
+        margin:0 0 0 8px;
+        width:100% !important;
+        height:100% !important;
+        // @include border-radius(0);
+      }
+    }
+  }
+}
+
+/**
+ * Icons
+ */
+.mee-wrapper{
+   [class^="icon-"]:before, [class*=" icon-"]:before {
+    font-family: "mee";
+    font-style: normal;
+    font-weight: normal;
+    speak: none;
+
+    display: inline-block;
+    text-decoration: inherit;
+    width: 1em;
+    margin-right: .2em;
+    text-align: center;
+    /* opacity: .8; */
+
+    /* For safety - reset parent styles, that can break glyph codes*/
+    font-variant: normal;
+    text-transform: none;
+
+    /* fix buttons height, for twitter bootstrap */
+    line-height: 1em;
+
+    /* Animation center compensation - margins should be symmetric */
+    /* remove if not needed */
+    margin-left: .2em;
+
+    /* you can be more comfortable with increased icons size */
+    /* font-size: 120%; */
+
+    /* Uncomment for 3D effect */
+    /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+  }
+
+  .icon-mee-drupal:before { content: '\e80c'; } /* '' */
+  .icon-mee-pencil:before { content: '\e81e'; } /* '' */
+  .icon-mee-quote:before { content: '\e806'; } /* '' */
+  .icon-mee-rule:before { content: '\e808'; } /* '' */
+  .icon-mee-th-large:before { content: '\e80f'; } /* '' */
+  .icon-mee-th:before { content: '\e80e'; } /* '' */
+  .icon-mee-image:before { content: '\e804'; } /* '' */
+  .icon-mee-bold:before { content: '\e800'; } /* '' */
+  .icon-mee-help-circled:before { content: '\e81d'; } /* '' */
+  .icon-mee-info-circled:before { content: '\e81c'; } /* '' */
+  .icon-mee-tag:before { content: '\e81a'; } /* '' */
+  .icon-mee-italic:before { content: '\e801'; } /* '' */
+  .icon-mee-heading:before { content: '\e80a'; } /* '' */
+  .icon-mee-indent-left:before { content: '\e810'; } /* '' */
+  .icon-mee-indent-right:before { content: '\e811'; } /* '' */
+  .icon-mee-spinner:before { content: '\e80b'; } /* '' */
+  .icon-mee-fullscreen:before { content: '\e809'; } /* '' */
+  .icon-mee-ul:before { content: '\e802'; } /* '' */
+  .icon-mee-ol:before { content: '\e803'; } /* '' */
+  .icon-mee-table:before { content: '\e815'; } /* '' */
+  .icon-mee-gauge:before { content: '\e817'; } /* '' */
+  .icon-mee-sitemap:before { content: '\e816'; } /* '' */
+  .icon-mee-doc-text:before { content: '\e818'; } /* '' */
+  .icon-mee-code:before { content: '\e807'; } /* '' */
+  .icon-mee-doc-text-inv:before { content: '\e812'; } /* '' */
+  .icon-mee-videocam:before { content: '\e80d'; } /* '' */
+  .icon-mee-user:before { content: '\e813'; } /* '' */
+  .icon-mee-users:before { content: '\e814'; } /* '' */
+  .icon-mee-attach:before { content: '\e81b'; } /* '' */
+  .icon-mee-bookmark:before { content: '\e819'; } /* '' */
+  .icon-mee-link:before { content: '\e805'; } /* '' */
+
+  /*
+     Animation example, for spinners
+  */
+  .animate-spin {
+    -moz-animation: spin 2s infinite linear;
+    -o-animation: spin 2s infinite linear;
+    -webkit-animation: spin 2s infinite linear;
+    animation: spin 2s infinite linear;
+    display: inline-block;
+  }
+  @-moz-keyframes spin {
+    0% {
+      -moz-transform: rotate(0deg);
+      -o-transform: rotate(0deg);
+      -webkit-transform: rotate(0deg);
+      transform: rotate(0deg);
+    }
+
+    100% {
+      -moz-transform: rotate(359deg);
+      -o-transform: rotate(359deg);
+      -webkit-transform: rotate(359deg);
+      transform: rotate(359deg);
+    }
+  }
+  @-webkit-keyframes spin {
+    0% {
+      -moz-transform: rotate(0deg);
+      -o-transform: rotate(0deg);
+      -webkit-transform: rotate(0deg);
+      transform: rotate(0deg);
+    }
+
+    100% {
+      -moz-transform: rotate(359deg);
+      -o-transform: rotate(359deg);
+      -webkit-transform: rotate(359deg);
+      transform: rotate(359deg);
+    }
+  }
+  @-o-keyframes spin {
+    0% {
+      -moz-transform: rotate(0deg);
+      -o-transform: rotate(0deg);
+      -webkit-transform: rotate(0deg);
+      transform: rotate(0deg);
+    }
+
+    100% {
+      -moz-transform: rotate(359deg);
+      -o-transform: rotate(359deg);
+      -webkit-transform: rotate(359deg);
+      transform: rotate(359deg);
+    }
+  }
+  @-ms-keyframes spin {
+    0% {
+      -moz-transform: rotate(0deg);
+      -o-transform: rotate(0deg);
+      -webkit-transform: rotate(0deg);
+      transform: rotate(0deg);
+    }
+
+    100% {
+      -moz-transform: rotate(359deg);
+      -o-transform: rotate(359deg);
+      -webkit-transform: rotate(359deg);
+      transform: rotate(359deg);
+    }
+  }
+  @keyframes spin {
+    0% {
+      -moz-transform: rotate(0deg);
+      -o-transform: rotate(0deg);
+      -webkit-transform: rotate(0deg);
+      transform: rotate(0deg);
+    }
+
+    100% {
+      -moz-transform: rotate(359deg);
+      -o-transform: rotate(359deg);
+      -webkit-transform: rotate(359deg);
+      transform: rotate(359deg);
+    }
+  }
+}

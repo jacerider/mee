@@ -1,0 +1,51 @@
+/**
+ * Admin
+ */
+#mee-toolbar-editor{
+
+  label span{
+    text-transform: none;
+    font-weight:normal;
+  }
+
+  .mee-sortable{
+    min-width: 28px;
+    background:#5d5d5d;
+    margin:0;
+    min-height: 22px;
+    @include border-radius(3px);
+  }
+
+  .mee-placeholder{
+    @extend .btn;
+    @extend .btn-mini;
+    width:15px;
+    height:19px;
+  }
+
+  .form-item{
+    margin:0;
+    padding:0;
+  }
+
+  .form-text{
+    margin:0;
+    padding:0 0 2px 5px;
+    border:none;
+    width:80px;
+    font-size: 9.5px;
+    line-height: 9.5px;
+    font-weight:bold;
+    text-shadow: 0 -1px 0 #000000;
+    background:transparent;
+    color:#B6BFBF;
+    text-transform: uppercase;
+    height:9.5px;
+    overflow:hidden;
+    display:block;
+
+    &:focus{
+      @include box-shadow(none);
+    }
+  }
+}

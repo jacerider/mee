@@ -1,0 +1,111 @@
+/**
+ * Assets
+ */
+.asset-browser-inner{
+  // background:#3F3F3F;
+  // @include border-radius(5px);
+  padding:10px 0;
+
+  table{
+    border:none !important;
+  }
+
+  td{
+    padding:0;
+    border:none !important;
+  }
+
+  .asset{
+    position:relative;
+    padding:0;
+    background:#3f3f3f;
+    color:#fff;
+    font-shadow: 0 -1px 0 #000;
+    width:170px;
+    height:100px;
+    margin:10px auto;
+    text-align: center;
+    overflow:hidden;
+
+    .views-field-name{
+      position:absolute;
+      bottom:0;
+      left:0;
+      right:0;
+      background:rgba(0,0,0,.5);
+      font-size:11px;
+      line-height:11px;
+      padding:5px;
+    }
+
+    .views-field-field-asset-file{
+      padding-top:30px;
+    }
+
+    .asset-edit,
+    .asset-delete{
+      position:absolute;
+      @include transition(opacity 0.2s);
+      @include opacity(0);
+      top:10px;
+      z-index:11;
+    }
+
+    .asset-edit{
+      left:10px;
+
+      [class^="icon-"]:before,
+      [class*=" icon-"]:before{
+        margin-left:0 !important;
+        margin-right:0 !important;
+      }
+    }
+
+    .asset-delete{
+      right:10px;
+    }
+
+    &:hover{
+      .asset-edit,
+      .asset-delete{
+        @include opacity(100);
+      }
+    }
+  }
+
+  .asset-select{
+    position:absolute;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    z-index:10;
+    text-indent:-1000px;
+    overflow:hidden;
+
+    &:focus{
+      outline: none;
+    }
+  }
+}
+
+.asset-loading{
+  background: rgba(255,255,255,.5);
+  @include border-radius(5px);
+  color:#646464;
+  text-align: center;
+  font-size: 14px;
+
+  div{
+    padding:5px;
+  }
+}
+
+#mee-asset-type-form{
+  .form-item-data-icon{
+    .form-item{
+      display:inline;
+      padding-right:10px;
+    }
+  }
+}
