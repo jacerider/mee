@@ -39,6 +39,31 @@ function mee_allowed_widget_types() {
 }
 
 /**
+ * Return a list of Mee enabled fields with information on entity|bundle|field
+ */
+function mee_instance_usage(){
+  $allowed_field_types = mee_allowed_field_types();
+  $mee_enabled = array();
+  foreach(field_info_field_map() as $field_name => $data){
+    if(in_array($data['type'], $allowed_field_types)){
+      foreach($data['bundles'] as $entity_type => $bundles){
+        foreach($bundles as $bundle_name){
+          $instance = field_info_instance($entity_type, $field_name, $bundle_name);
+          if(!empty($instance['settings']['mee']['enable'])){
+            $entity = entity_get_info($entity_type);
+            $key = $entity_type.'|'.$field_name.'|'.$bundle_name;
+            $title = '[' .$entity['bundles'][$bundle_name]['label'] . '] ' . $instance['label'];
+            //$mee_enabled[$entity_type] = empty($mee_enabled[$entity_type]) ? $entity['label'] : $mee_enabled[$entity_type];
+            $mee_enabled[$entity['label']][$key] = $title;
+          }
+        }
+      }
+    }
+  }
+  return $mee_enabled;
+}
+
+/**
  * Implements hook_form_FIELD_UI_FIELD_EDIT_FORM_alter().
  */
 function mee_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
@@ -91,6 +116,18 @@ function mee_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
         // ),
       ),
     );
+
+    if($usage = mee_instance_usage()){
+      dsm($usage);
+      array_unshift($usage, '--');
+      $mee['settings']['load'] = array(
+        '#type' => 'select',
+        '#title' => t('Import Settings'),
+        '#options' => $usage,
+        '#description' => t('Import settings form another Mee isntance.'),
+        '#tree' => FALSE,
+      );
+    }
 
     $mee['settings']['autogrow'] = array(
       '#type' => 'checkbox',
