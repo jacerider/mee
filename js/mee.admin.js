@@ -8,7 +8,10 @@ Drupal.behaviors.mee_admin = {
       $( ".btn-group", this ).sortable({
         connectWith: ".mee-sortable",
         placeholder: "mee-placeholder",
-        update: self.update
+        update: self.update,
+        containment: '#mee-toolbar-editor',
+        cursor: "move",
+        tolerance: "pointer"
       }).disableSelection();
     });
 
@@ -23,8 +26,8 @@ Drupal.behaviors.mee_admin = {
       return;
     }
 
-    $('input[name="instance[settings][mee][settings][toolbar][buttons][' + id + '][status]"]').val(1);
-    $('input[name="instance[settings][mee][settings][toolbar][buttons][' + id + '][group]"]').val(group);
+    $('input[name$="[toolbar][buttons][' + id + '][status]"]').val(1);
+    $('input[name$="[toolbar][buttons][' + id + '][group]"]').val(group);
     Drupal.behaviors.mee_admin.weight( group );
     //instance[settings][mee][settings][toolbar][buttons][blockquote][group]
   },
@@ -33,12 +36,12 @@ Drupal.behaviors.mee_admin = {
     $('li', '#mee-group-' + group).each(function( i ){
       var id = $( this ).attr('id').replace('mee-','');
       var weight = (i - 10);
-      $('input[name="instance[settings][mee][settings][toolbar][buttons][' + id + '][weight]"]').val( weight );
+      $('input[name$="[toolbar][buttons][' + id + '][weight]"]').val( weight );
     });
   },
 
   disable: function ( id ) {
-    $('input[name="instance[settings][mee][settings][toolbar][buttons][' + id + '][status]"]').val(0);
+    $('input[name$="[toolbar][buttons][' + id + '][status]"]').val(0);
   }
 }
 
