@@ -104,7 +104,7 @@ function mee_form_field_form(&$form, &$form_state){
   // Get defaults
   $default_values = !empty($instance['settings']['mee']['settings']) ? $instance['settings']['mee']['settings'] : $defaults;
   // Load in defaults from another field
-  if(!empty($form_state['values']['mee_default'])){
+  if(!empty($form_state['values']['instance']['settings']['mee']['settings']['default'])){
     $default_values = variable_get('mee_defaults');
   }
   else if (!empty($form_state['values']['mee_load'])){
@@ -242,15 +242,15 @@ function mee_form_field_form(&$form, &$form_state){
   foreach(mee_buttons() as $name => $p){
     $buttons[$name]['status'] = array(
       '#type' => 'hidden',
-      '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['status']) ? $default_values['toolbar']['buttons'][$name]['status'] : 0,
+      '#value' => !empty($default_values['toolbar']['buttons'][$name]['status']) ? $default_values['toolbar']['buttons'][$name]['status'] : 0,
     );
     $buttons[$name]['group'] = array(
       '#type' => 'hidden',
-      '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['group']) ? $default_values['toolbar']['buttons'][$name]['group'] : 'disabled',
+      '#value' => !empty($default_values['toolbar']['buttons'][$name]['group']) ? $default_values['toolbar']['buttons'][$name]['group'] : 'disabled',
     );
     $buttons[$name]['weight'] = array(
       '#type' => 'hidden',
-      '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['weight']) ? $default_values['toolbar']['buttons'][$name]['weight'] : 0,
+      '#value' => !empty($default_values['toolbar']['buttons'][$name]['weight']) ? $default_values['toolbar']['buttons'][$name]['weight'] : 0,
     );
   }
 }
