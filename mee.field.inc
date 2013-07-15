@@ -242,15 +242,15 @@ function mee_form_field_form(&$form, &$form_state){
   foreach(mee_buttons() as $name => $p){
     $buttons[$name]['status'] = array(
       '#type' => 'hidden',
-      '#value' => !empty($default_values['toolbar']['buttons'][$name]['status']) ? $default_values['toolbar']['buttons'][$name]['status'] : 0,
+      '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['status']) ? $default_values['toolbar']['buttons'][$name]['status'] : 0,
     );
     $buttons[$name]['group'] = array(
       '#type' => 'hidden',
-      '#value' => !empty($default_values['toolbar']['buttons'][$name]['group']) ? $default_values['toolbar']['buttons'][$name]['group'] : 'disabled',
+      '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['group']) ? $default_values['toolbar']['buttons'][$name]['group'] : 'disabled',
     );
     $buttons[$name]['weight'] = array(
       '#type' => 'hidden',
-      '#value' => !empty($default_values['toolbar']['buttons'][$name]['weight']) ? $default_values['toolbar']['buttons'][$name]['weight'] : 0,
+      '#default_value' => !empty($default_values['toolbar']['buttons'][$name]['weight']) ? $default_values['toolbar']['buttons'][$name]['weight'] : 0,
     );
   }
 }
