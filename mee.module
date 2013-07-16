@@ -17,7 +17,27 @@ function mee_menu(){
     //'delivery callback' => 'core_ajax_deliver',
     'type' => MENU_CALLBACK
   );
+  $items['admin/config/content/mee'] = array(
+    'title' => 'Mee Editor',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mee_settings'),
+    'access arguments' => array('administer mee'),
+    'file' => 'mee.admin.inc',
+    'description' => t('Configure the mee editor.')
+  );
   return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function hook_permission() {
+  return array(
+    'administer mee' => array(
+      'title' => t('Administer Mee Editor'),
+      'description' => t('Perform administration tasks for the mee editor.'),
+    ),
+  );
 }
 
 /**
