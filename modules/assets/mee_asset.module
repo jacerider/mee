@@ -118,6 +118,11 @@ function mee_asset_filter_info() {
     'description' => t('Convert asset tokens to rendered assets.'),
     'process callback' => 'mee_asset_filter_process',
   );
+  $filters['mee_asset_strip'] = array(
+    'title' => t('Asset remover'),
+    'description' => t('Remove asset tokens from rendered assets.'),
+    'process callback' => 'mee_asset_filter_remove_process',
+  );
   return $filters;
 }
 
@@ -138,6 +143,14 @@ function mee_asset_filter_process($text, $format) {
     $text = str_replace('['.$key.']', drupal_render($view), $text);
   }
   return $text;
+}
+
+/**
+ * Filter process callback.
+ */
+function mee_asset_filter_remove_process($text, $format) {
+  $pattern = '/(\[asset-[0-9]+(-[0-9]+)?\])/i';
+  return preg_replace($pattern, '', $text);
 }
 
 /**
