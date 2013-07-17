@@ -57,7 +57,7 @@ class MeeAssetUIController extends EntityDefaultUIController {
         'page callback' => 'mee_asset_form_wrapper',
         'page arguments' => array(mee_asset_create(array('type' => $type->type))),
         'access callback' => 'mee_asset_access',
-        'access arguments' => array('edit', 'edit ' . $type->type),
+        'access arguments' => array('edit', $type->type),
         'file' => 'mee_asset.admin.inc',
         'file path' => drupal_get_path('module', $this->entityInfo['module'])
       );
