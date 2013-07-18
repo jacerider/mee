@@ -438,6 +438,9 @@ function mee_asset_access($op, $mee_asset = NULL, $account = NULL) {
   if (user_access('administer mee_assets', $account)) {
     return TRUE;
   }
+  if (@is_numeric($mee_asset)){
+    $mee_asset = mee_asset_load($mee_asset);
+  }
   if (@is_string($mee_asset) && $type_name = $mee_asset) {
     $op = ($op == 'view') ? 'view' : 'edit';
     if (user_access("$op any $type_name mee asset", $account)) {
