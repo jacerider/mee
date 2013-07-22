@@ -31,7 +31,7 @@ function mee_menu(){
 /**
  * Implements hook_permission().
  */
-function hook_permission() {
+function mee_permission() {
   return array(
     'administer mee' => array(
       'title' => t('Administer Mee Editor'),
