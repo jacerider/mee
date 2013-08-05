@@ -196,6 +196,7 @@ function mee_asset_view($asset_id, $instance_id, $preview = FALSE){
     $controller = entity_get_controller('mee_asset');
     $display = $controller->view(array($asset->id => $asset));
     $render['asset'] = $display['mee_asset'][key($display['mee_asset'])];
+    $render['#preview'] = $preview;
     unset($controller,$display);
     $output['view'] = theme('mee_asset_instance', $render);
   }

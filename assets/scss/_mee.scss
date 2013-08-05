@@ -84,6 +84,28 @@
 }
 
 /**
+ * Preview containment block
+ */
+.mee-preview-temp{
+  display:block;
+  background:#b3b3b3;
+  color:#fff;
+  text-align:center;
+  @include border-radius(3px);
+  padding:10px;
+
+  i{
+    font-size:20px;
+    line-height:20px;
+  }
+
+  span{
+    display:block;
+    font-size:11px;
+  }
+}
+
+/**
  * Iframe
  */
 .mee-iframe{
@@ -191,7 +213,9 @@
 /**
  * Icons
  */
-.mee-wrapper{
+.mee-wrapper,
+.form-item-data-icon,
+.mee-preview-temp{
    [class^="icon-"]:before, [class*=" icon-"]:before {
     font-family: "mee";
     font-style: normal;

@@ -6,6 +6,8 @@ core        = 7.x
 
 dependencies[] = libraries
 dependencies[] = ctools
+dependencies[] = views
+dependencies[] = image
 
 ; Our plugins interfaces and abstract implementations.
 files[] = plugins/buttons/abstract.class.php
