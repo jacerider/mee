@@ -178,6 +178,12 @@ function mee_form_field_form(&$form, &$form_state){
     );
   }
 
+  // Hack to allow for imported and default values to be set.
+  $unset = array('autogrow','view','labels_show','text_format','toolbar');
+  foreach($unset as $i){
+    unset($form_state['input']['instance']['settings']['mee']['settings'][$i]);
+  }
+
   $mee['settings']['autogrow'] = array(
     '#type' => 'checkbox',
     '#title' => t('Autogrow'),

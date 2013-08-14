@@ -9,7 +9,7 @@ Drupal.behaviors.mee_admin = {
         connectWith: ".mee-sortable",
         placeholder: "mee-placeholder",
         update: self.update,
-        containment: '#mee-toolbar-editor',
+        //containment: '#mee-toolbar-editor',
         cursor: "move",
         tolerance: "pointer"
       }).disableSelection();
