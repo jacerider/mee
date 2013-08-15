@@ -174,3 +174,25 @@ function mee_asset_usage_load_by_entity($entity_type, $entity_id, $limit = FALSE
   return $query->execute()
     ->fetchAll();
 }
+
+/**
+ * Does an exact usage match already exist.
+ */
+function mee_asset_usage_exists($asset_id, $entity_type, $entity_id, $instance_id = NULL){
+  $query = db_select('mee_asset_usage', 'u')
+    ->fields('u')
+    ->condition('asset_id', $asset_id)
+    ->condition('entity_type', $entity_type)
+    ->condition('entity_id', $entity_id);
+
+  if($instance_id){
+    $query->condition('instance_id', $instance_id);
+  }else{
+    $query->isNull('instance_id');
+  }
+
+  $results = $query->execute()->fetchAll();
+  dsm($results);
+
+  return !empty($results) ? $results[key($results)]->id : false;
+}

@@ -317,6 +317,7 @@ function mee_asset_entity_info() {
     'entity keys' => array(
         'id' => 'id',
         'bundle' => 'type',
+        'label' => 'name',
     ),
     // Bundles are defined by the mee_asset types below
     'bundles' => array(),
@@ -329,6 +330,19 @@ function mee_asset_entity_info() {
     'creation callback' => 'mee_asset_create',
     'access callback' => 'mee_asset_access',
     'module' => 'mee_asset',
+    'inline entity form' => array(
+      'controller' => 'MeeAssetInlineEntityFormController',
+    ),
+    'view modes' => array(
+      'default' => array(
+        'label' => t('Default'),
+        'custom settings' => TRUE
+      ),
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' => FALSE
+      ),
+    ),
     // The information below is used by the MeeAssetUIController (which extends the EntityDefaultUIController)
     'admin ui' => array(
       'path' => 'admin/content/asset',

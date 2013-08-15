@@ -1730,7 +1730,7 @@ $.fn.autosize = function (options) {
         height += boxOffset;
         ta.style.overflowY = preview.style.overflowY = overflow || hidden;
         if((previewContent.offsetHeight) > height){
-          height = previewContent.offsetHeight;
+          height = previewContent.offsetHeight + 20;
         }
         if (original !== height) {
           ta.style.height = height + 'px';

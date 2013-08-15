@@ -9,6 +9,7 @@ dependencies[] = mee
 
 files[] = mee_asset.admin.inc
 files[] = mee_asset_type.admin.inc
+files[] = mee_asset.inline_entity_form.inc
 files[] = views/mee_asset.views.inc
 files[] = views/mee_asset_handler_link_field.inc
 files[] = views/mee_asset_handler_delete_link_field.inc
