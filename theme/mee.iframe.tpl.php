@@ -1,3 +1,3 @@
-<div class="mee-iframe-content">
+<div class="mee-iframe-content clearfix">
 
 </div>
