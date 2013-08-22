@@ -82,6 +82,7 @@ function mee_asset_type_form($form, &$form_state, $mee_asset_type, $op = 'edit')
     '#default_value' => empty($mee_asset_type->data['shortcut']) ? '' : $mee_asset_type->data['shortcut'],
   );
   $instances = mee_get_plugin('instance');
+  usort($instances, 'drupal_sort_weight');
   if(!empty($instances)){
     $form['data']['instances'] = array(
       '#tree' => TRUE,

@@ -11,7 +11,7 @@ if(!empty($entity['bundles'])){
       'tip' => $bundle->data['tip'],
       'shortcut' => $bundle->data['shortcut'],
       'group' => 'other',
-      'script' => 'mee_asset.js',
+      'script' => 'js/mee_asset.js',
       // All asset buttons will call the same js command.
       'callback' => 'asset',
       // We need to know what type was clicked to pass in additional data.

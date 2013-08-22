@@ -95,6 +95,24 @@ function mee_asset_menu(){
 }
 
 /**
+ * Implements hook_inline_entity_form_reference_form_alter().
+ */
+function mee_asset_inline_entity_form_reference_form_alter(&$reference_form, &$form_state){
+  $type = $form_state['build_info']['args'][0]->type;
+  module_load_include('inc','mee_asset','mee_asset.page');
+  $reference_form['browser'] = mee_asset_browser('image');
+  $reference_form['#attached']['js'][] = drupal_get_path('module', 'mee_asset') . '/js/mee_asset.inline_entity_form.js';
+  $reference_form['#attached']['css'][] = drupal_get_path('module', 'mee') . '/css/application.css';
+  $reference_form['#attached']['css'][] = drupal_get_path('module', 'mee_asset') . '/css/mee_asset.inline_entity_form.css';
+  $reference_form['parents'] = array(
+    '#type' => 'hidden',
+    '#attributes' => array('class'=>array('parents')),
+    '#value' => str_replace('][und]', '[und]', implode('][', $reference_form['#parents'])),
+  );
+  $reference_form['entity_id']['#type'] = 'hidden';
+}
+
+/**
  * Implements hook_custom_theme.
  */
 function mee_asset_custom_theme() {

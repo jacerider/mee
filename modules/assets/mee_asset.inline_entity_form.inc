@@ -382,6 +382,10 @@ class MeeAssetInlineEntityFormController {
    *   - parent_entity: The parent entity.
    */
   public function save($entity, $context) {
+    if(empty($entity->id)){
+      $entity->created = time();
+    }
+    $entity->updated = time();
     entity_save($this->entityType, $entity);
   }
 

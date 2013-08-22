@@ -13,6 +13,7 @@ function theme_mee_asset_instance($element){
     if($active = array_filter($bundle->data['instances'])){
       foreach($active as $instance_type => $settings){
         $handler = _mee_get_handler('instance', $instance_type);
+        $asset->asset_instance->data['instance'] = $settings;
         $handler->instance_render($element, $asset->asset_instance->data);
       }
     }

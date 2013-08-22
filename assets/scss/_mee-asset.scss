@@ -109,3 +109,14 @@
     }
   }
 }
+
+#asset-instance-form{
+  .form-type-checkbox{
+    input{
+      margin:0;
+    }
+    label.option{
+      display:inline;
+    }
+  }
+}

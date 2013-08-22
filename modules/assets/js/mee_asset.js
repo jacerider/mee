@@ -8,7 +8,7 @@ Drupal.behaviors.mee_asset = {
 
   attach: function (context, settings) {
     var self = this;
-    $('.asset-select').once(function(){
+    $('.mee-wrapper .asset-select').once(function(){
       $(this).click( self.assetSelect ).closest('td').wrapInner('<div class="asset" />');
     });
 
