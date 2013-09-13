@@ -9,7 +9,7 @@
 
 function mee_asset_install() {
   // Create image bundle
-  if(mee_asset_install_bundle('image', 'Image', 'mee-image', 'Image - Ctrl+G', 'ctrl+g')){
+  if(mee_asset_install_bundle('image', 'Image', 'photo', 'Image - Ctrl+G', 'ctrl+g')){
     mee_asset_install_bundle_image_fields();
   }
 

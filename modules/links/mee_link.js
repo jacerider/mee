@@ -7,6 +7,10 @@ Drupal.behaviors.mee_link = {
     var self = this;
     $('#mee-web').once(function(){
       $(this).focus();
+      var mee = $.fn.meeActive;
+      console.log(ss);
+      var ss = mee.meeSelection;
+      $('#mee-link-title').val(ss.content);
     });
 
   }
@@ -14,7 +18,7 @@ Drupal.behaviors.mee_link = {
 
 $.fn.meeCommands.mee_link = function () {
   var mee = $.fn.meeActive;
-  var placeholder = $('<div id="mee-link-browser"><div class="mee-loader"><div><i class="icon-mee-spinner animate-spin"></i> Loading ' + mee.meeButtonSettings.data.label.toLowerCase() + ' browser...</div></div></div>');
+  var placeholder = $('<div id="mee-link-browser"><div class="mee-loader"><div><i class="icon-spinner icon-spin"></i> Loading ' + mee.meeButtonSettings.data.label.toLowerCase() + ' browser...</div></div></div>');
   var submit = $('<a id="link-create" href="#" class="btn btn-primary">Create ' + mee.meeButtonSettings.data.label + '</a>').click(function( e ){
     e.preventDefault();
     var $form = $('#mee-link-form');

@@ -8,6 +8,7 @@ dependencies[] = libraries
 dependencies[] = ctools
 dependencies[] = views
 dependencies[] = image
+dependencies[] = fawesome
 
 ; Our plugins interfaces and abstract implementations.
 files[] = plugins/buttons/abstract.class.php

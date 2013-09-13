@@ -1,0 +1,8 @@
+name        = MEE: Assets | File
+description = Provides a file asset type.
+package     = Mee
+version     = VERSION
+core        = 7.x
+
+dependencies[] = mee_asset
+dependencies[] = gdoc_field

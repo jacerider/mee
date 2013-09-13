@@ -247,7 +247,7 @@ meeObject.prototype.once = function () {
 meeObject.prototype.loading = function () {
   var self = this;
   if(self.mee.loading === false){
-    self.mee.loader = $('<div class="mee-loader"><div><i class="icon-mee-spinner animate-spin"></i> Loading editor...</div></div>');
+    self.mee.loader = $('<div class="mee-loader"><div><i class="icon-spinner icon-spin"></i> Loading editor...</div></div>');
     self.mee.editor.before( self.mee.loader );
     self.mee.loading = true;
   }

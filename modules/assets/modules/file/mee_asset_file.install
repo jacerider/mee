@@ -1,0 +1,186 @@
+<?php
+
+/**
+ * Setup asset types and fields.
+ */
+function mee_asset_file_install() {
+  // Create image bundle
+  if(mee_asset_file_install_bundle('file', 'File', 'file-text-alt', 'File', '')){
+    mee_asset_file_install_bundle_file_fields();
+  }
+
+  return array();
+}
+
+
+/**
+ * Create a bundle
+ */
+function mee_asset_file_install_bundle($type, $label, $icon, $tip = NULL, $shortcut = NULL){
+  $bundles = field_info_bundles('mee_asset');
+  if (empty($bundles[$type])) {
+    $controller = new MeeAssetTypeController('mee_asset_type');
+    $params = array();
+    $params['type'] = $type;
+    $params['label'] = t($label);
+    $params['data']['icon'] = $icon;
+    $params['data']['tip'] = $tip;
+    $params['data']['shortcut'] = $shortcut;
+    $params['data']['instances']['field_format']['field_formats']['field_asset_file']['file_default']['enabled'] = 1;
+    $params['data']['instances']['field_format']['field_formats']['field_asset_file']['file_default']['preview'] = 0;
+    $params['data']['instances']['field_format']['field_formats']['field_asset_file']['gdoc_field_embedded_doc']['enabled'] = 1;
+    $params['data']['instances']['field_format']['field_formats']['field_asset_file']['gdoc_field_embedded_doc']['preview'] = 1;
+    $bundle = $controller->create($params);
+    $controller->save($bundle);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+function mee_asset_file_install_bundle_file_fields(){
+  $field = array(
+    'translatable' => '0',
+    'entity_types' => array(
+    ),
+    'settings' => array(
+      'display_field' => 0,
+      'display_default' => 0,
+      'uri_scheme' => 'public',
+    ),
+    'storage' => array(
+      'type' => 'field_sql_storage',
+      'settings' => array(
+      ),
+      'module' => 'field_sql_storage',
+      'active' => '1',
+      'details' => array(
+        'sql' => array(
+          'FIELD_LOAD_CURRENT' => array(
+            'field_data_field_asset_file' =>   array(
+              'fid' => 'field_asset_file_fid',
+              'display' => 'field_asset_file_display',
+              'description' => 'field_asset_file_description',
+            ),
+          ),
+          'FIELD_LOAD_REVISION' => array(
+            'field_revision_field_asset_file' =>   array(
+              'fid' => 'field_asset_file_fid',
+              'display' => 'field_asset_file_display',
+              'description' => 'field_asset_file_description',
+            ),
+          ),
+        ),
+      ),
+    ),
+    'foreign keys' => array(
+      'fid' => array(
+        'table' => 'file_managed',
+        'columns' => array(
+          'fid' => 'fid',
+        ),
+      ),
+    ),
+    'indexes' => array(
+      'fid' => array(
+        0 => 'fid',
+      ),
+    ),
+    'id' => '28',
+    'field_permissions' => array(
+      'type' => '0',
+    ),
+    'field_name' => 'field_asset_file',
+    'type' => 'file',
+    'module' => 'file',
+    'active' => '1',
+    'locked' => '0',
+    'cardinality' => '1',
+    'deleted' => '0',
+    'columns' => array(
+      'fid' => array(
+        'description' => 'The {file_managed}.fid being referenced in this field.',
+        'type' => 'int',
+        'not null' => false,
+        'unsigned' => true,
+      ),
+      'display' => array(
+        'description' => 'Flag to control whether this file should be displayed when viewing content.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => true,
+        'not null' => true,
+        'default' => 1,
+      ),
+      'description' => array(
+        'description' => 'A description of the file.',
+        'type' => 'text',
+        'not null' => false,
+      ),
+    ),
+    'bundles' => array(
+      'mee_asset' => array(
+        0 => 'file',
+      ),
+    ),
+  );
+  field_create_field($field);
+
+  $instance = array(
+    'label' => 'File',
+    'widget' => array(
+      'weight' => '1',
+      'type' => 'file_generic',
+      'module' => 'file',
+      'active' => 1,
+      'settings' => array(
+        'progress_indicator' => 'throbber',
+        'maxlength_js_label' => 'Content limited to @limit characters, remaining: @remaining',
+      ),
+    ),
+    'settings' => array(
+      'file_directory' => '',
+      'file_extensions' => 'txt pdf doc docx xls xlsx',
+      'max_filesize' => '',
+      'description_field' => 1,
+      'filefield_paths_enabled' => 1,
+      'filefield_paths' => array(
+        'file_path' => array(
+          'value' => 'assets/files',
+          'options' => array(
+            'pathauto' => 0,
+            'transliterate' => 0,
+          ),
+        ),
+        'retroactive_update' => 0,
+        'active_updating' => 0,
+        'file_name' => array(
+          'value' => '[mee_asset:id]-[file:fid]-[mee_asset:name].[file:ffp-extension-original]',
+          'options' => array(
+            'pathauto' => 1,
+            'transliterate' => 0,
+          ),
+        ),
+      ),
+      'user_register_form' => false,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'hidden',
+        'type' => 'file_default',
+        'settings' => array(
+        ),
+        'module' => 'file',
+        'weight' => 0,
+      ),
+    ),
+    'required' => 1,
+    'description' => '',
+    'id' => '46',
+    'field_id' => '28',
+    'field_name' => 'field_asset_file',
+    'entity_type' => 'mee_asset',
+    'bundle' => 'file',
+    'deleted' => '0',
+  );
+  field_create_instance($instance);
+}

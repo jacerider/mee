@@ -2,9 +2,9 @@
 
 $plugin = array(
   'title' => t('Ordered List'),
-  'class' => 'Mee_ButtonsHandler_Ol',
+  // 'class' => 'Mee_ButtonsHandler_Ol',
   'weight' => 0,
-  'icon' => 'mee-ol',
+  'icon' => 'list-ol',
   'tip' => 'Numbered List - Ctrl+O',
   'shortcut' => 'ctrl+o',
   'group' => 'list',

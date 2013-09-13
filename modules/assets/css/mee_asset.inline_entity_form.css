@@ -1,3 +1,10 @@
-.asset-browser-inner .asset-delete{
-  display:none;
+.field-widget-inline-entity-form #asset-browser .asset-delete,
+.field-widget-inline-entity-form #asset-browser .asset-edit{
+  display:none !important;
+}
+
+.field-widget-inline-entity-form #asset-browser .asset-category-info{
+  position:static;
+  top:0;
+  left:0;
 }

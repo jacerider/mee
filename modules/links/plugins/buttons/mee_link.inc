@@ -3,7 +3,7 @@
 $plugin = array(
   'title' => t('Enhanced Link'),
   'weight' => 0,
-  'icon' => 'mee-link',
+  'icon' => 'link',
   'tip' => 'Link - Ctrl+L',
   'shortcut' => 'ctrl+l',
   'group' => 'other',

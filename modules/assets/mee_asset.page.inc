@@ -15,7 +15,7 @@ function mee_asset_browser( $type, $category_tid = NULL, $js = FALSE, $return_co
   $output['#suffix'] = '</div>';
 
   $output['taxonomy'] = array(
-    '#markup' => mee_asset_categories($type),
+    '#markup' => mee_asset_categories($type, $category_tid),
     '#weight' => -5,
   );
 
@@ -42,27 +42,6 @@ function mee_asset_browser( $type, $category_tid = NULL, $js = FALSE, $return_co
   $page = array('#type' => 'ajax', '#commands' => $commands);
   ajax_deliver($page);
   exit;
-}
-
-function mee_asset_categories($type){
-  $output = '';
-
-  $taxonomy = taxonomy_vocabulary_machine_name_load('asset_category');
-  $terms = taxonomy_get_tree($taxonomy->vid);
-
-  $options = array();
-  foreach($terms as $term){
-    $count = db_query("SELECT COUNT(entity_id) FROM {field_data_field_asset_category} WHERE field_asset_category_tid = :tid AND bundle = :bundle", array(':tid' => $term->tid, ':bundle' => $type) )->fetchField();
-    if(!empty($count)){
-      $options[$term->tid] = l($term->name,'asset/browser/image/' . $term->tid . '/nojs', array('attributes'=>array('class'=>array('btn', 'btn-mini', 'use-ajax'))));
-    }
-  }
-  if(!empty($options)){
-    array_unshift($options, array(l('- All -','asset/browser/image/all/nojs', array('attributes'=>array('class'=>array('btn', 'btn-mini', 'use-ajax'))))));
-    $output .= theme('item_list', array('items'=>$options));
-  }
-
-  return $output;
 }
 
 /**
@@ -283,4 +262,146 @@ function mee_asset_remove_form_submit_ajax($form, &$form_state){
   $asset = $form_state['mee_asset'];
   mee_asset_delete( $asset );
   return mee_asset_browser( $asset->type, NULL, TRUE );
+}
+
+/**
+ * Category toolbar display.
+ */
+function mee_asset_categories($type, $category_tid){
+  $output = '';
+
+  $taxonomy = taxonomy_vocabulary_machine_name_load('asset_category');
+  $terms = taxonomy_get_tree($taxonomy->vid);
+  $current_name = 'All';
+  $current_id = 'all';
+
+  $options = array();
+  foreach($terms as $term){
+    $count = db_query("SELECT COUNT(entity_id) FROM {field_data_field_asset_category} WHERE field_asset_category_tid = :tid AND bundle = :bundle", array(':tid' => $term->tid, ':bundle' => $type) )->fetchField();
+    if($category_tid == $term->tid){
+      $current_name = $term->name;
+      $current_id = $term->tid;
+    }
+    if(!empty($count)){
+      $options[$term->tid] = l('<i class="icon-folder-close"></i> '.$term->name,'asset/browser/'.$type.'/' . $term->tid . '/nojs', array('html'=>true, 'attributes'=>array('class'=>array('use-ajax'))));
+    }
+  }
+  $output .= '<div class="asset-category-info btn-group">';
+  $output .=  '<span class="btn btn-mini disabled">Showing</span>';
+  $output .=  l($current_name,'asset/browser/'.$type.'/'.$current_id.'/nojs', array('attributes'=>array('class'=>array('btn', 'btn-mini', 'asset-category-change', 'btn-info'))));
+  $output .=  l('<i class="icon-edit"></i>','asset/categories/'.$type.'/nojs', array('html'=>true, 'attributes'=>array('class'=>array('btn', 'btn-mini', 'use-ajax'))));
+  $output .= '</div>';
+  if(!empty($options)){
+    array_unshift($options, l('<i class="icon-folder-close"></i> All','asset/browser/'.$type.'/all/nojs', array('html'=>true, 'attributes'=>array('class'=>array('use-ajax')))));
+    $output .=  theme('item_list', array('items'=>$options, 'attributes'=>array('class'=>array('asset-category-list'))));
+  }
+
+  return $output;
+}
+
+/**
+ * Remove an asset
+ *
+ * @author JaceRider
+ *
+ * @param  $id
+ *   The entity ID.
+ * @param  $js
+ *   Boolean if is a javascript request.
+ */
+function mee_asset_categories_manage( $type, $js = FALSE ){
+
+  $output = array();
+
+  $output['view'] = array(
+    '#markup' => '<h3>' . t('Manage') . ' <strong> ' . t('Categories') . '</strong></h3>',
+    '#weight' => -9,
+  );
+
+  $output['form'] = drupal_get_form('mee_asset_categories_manage_form', $type);
+
+  $output['status'] = array(
+    '#markup' => theme('status_messages'),
+    '#weight' => -10,
+  );
+
+  if( $js != 'ajax'){
+    return $output;
+  }
+
+  $commands = array();
+  $commands[] = ajax_command_html('#asset-browser', drupal_render($output));
+  $page = array('#type' => 'ajax', '#commands' => $commands);
+  ajax_deliver($page);
+  exit;
+}
+
+function mee_asset_categories_manage_form($form, &$form_state, $type){
+
+  $form['#id'] = 'asset-categories-form';
+  $form_state['asset_type'] = $type;
+
+  $taxonomy = taxonomy_vocabulary_machine_name_load('asset_category');
+  $terms = taxonomy_get_tree($taxonomy->vid);
+  $options = array('' => '-- None --');
+  foreach($terms as $term){
+    $options[$term->tid] = $term->name;
+  }
+
+  $form['create'] = array(
+    '#type' => 'textfield',
+    '#title' => '<i class="icon-plus text-success"></i> ' . t('Create a new category'),
+    '#description' => t('To create a new category, simply give it a name and click submit. You will then be able to add any assets to this category.'),
+    '#suffix' => '<hr />',
+  );
+
+  $form['remove'] = array(
+    '#type' => 'select',
+    '#title' => '<i class="icon-remove text-error"></i> ' . t('Remove an existing category'),
+    '#options' => $options,
+    '#description' => t('Selecting a category and clicking submit will cause the selected category to be deleted. None of the assets inside the category will be lost and will still be available in the "all" category.'),
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'button',
+    '#value' => t('Submit'),
+    '#attributes' => array('class'=>array('btn', 'btn-primary')),
+  );
+  $form['actions']['submit']['#ajax'] = array(
+    'callback' => 'mee_asset_categories_manage_form_submit_ajax',
+    'wrapper' => 'asset-categories-form',
+    'method' => 'replace',
+    'effect' => 'fade',
+  );
+  $form['actions']['cancel'] = array(
+    '#markup' => l('Cancel', 'asset/browser/'.$type.'/all/nojs', array('attributes'=>array('class'=>array('use-ajax', 'btn', 'btn-link')))),
+  );
+
+  return $form;
+}
+
+function mee_asset_categories_manage_form_submit_ajax($form, &$form_state){
+  $type = $form_state['asset_type'];
+  $values = $form_state['values'];
+  $message = array();
+  if(!empty($values['create'])){
+    $taxonomy = taxonomy_vocabulary_machine_name_load('asset_category');
+    $term = new stdClass();
+    $term->name = $values['create'];
+    $term->vid = $taxonomy->vid;
+    taxonomy_term_save($term);
+    $message[] = t('category "%name" has been created', array('%name'=>$term->name));
+  }
+  if(!empty($values['remove'])){
+    $term = taxonomy_term_load($values['remove']);
+    if(!empty($term)){
+      taxonomy_term_delete($values['remove']);
+      $message[] = t('category "%name" has been removed', array('%name'=>$term->name));
+    }
+  }
+  if(!empty($message)){
+    drupal_set_message(ucfirst(implode(' and ', $message)) . '.');
+  }
+  return mee_asset_browser( $type, NULL, TRUE );
 }

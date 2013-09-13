@@ -57,7 +57,7 @@ function mee_asset_type_form($form, &$form_state, $mee_asset_type, $op = 'edit')
   $form['data']['#tree'] = TRUE;
 
   $options = array();
-  foreach(mee_icons() as $icon){
+  foreach(fawesome_list() as $icon){
     $options[$icon] = '<i class="icon-'.$icon.'"></i>';
   }
   $form['data']['icon'] = array(
@@ -66,6 +66,7 @@ function mee_asset_type_form($form, &$form_state, $mee_asset_type, $op = 'edit')
     '#options' => $options,
     '#required' => TRUE,
     '#default_value' => empty($mee_asset_type->data['icon']) ? array() : $mee_asset_type->data['icon'],
+    '#attributes' => array('class'=>array('clearfix')),
   );
 
   $form['data']['tip'] = array(

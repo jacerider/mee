@@ -13,6 +13,8 @@ require_once dirname(__FILE__) . '/mee_asset.usage.inc';
  */
 
 function mee_asset_init(){
+  // $bundle = mee_asset_type_load('file');
+  // dsm($bundle);
   // $results = mee_asset_usage_load_by_asset_id(2);
   // dsm($results);
   // $results = mee_asset_usage_load_by_entity('node', 48);
@@ -21,11 +23,11 @@ function mee_asset_init(){
   // $matches = mee_asset_matches($text);
   // dsm($matches);
   // mee_asset_usage_check($text, 'node', 48);
-  // $field = field_info_field("field_asset_category");
+  // $field = field_info_field("field_asset_file");
   // print '<pre>';
   // var_export($field);
   // print '</pre>';
-  // $instance = field_info_instance("mee_asset", "field_asset_category", "image");
+  // $instance = field_info_instance("mee_asset", "field_asset_file", "file");
   // print '<pre>';
   // var_export($instance);
   // print '</pre>';
@@ -71,6 +73,14 @@ function mee_asset_menu(){
     'file' => 'mee_asset.page.inc',
     'type' => MENU_CALLBACK
   );
+  $items['asset/categories/%'] = array(
+    'page callback' => 'mee_asset_categories_manage',
+    'page arguments' => array(2),
+    'access callback' => 'mee_asset_access',
+    'access arguments' => array('view', 2),
+    'file' => 'mee_asset.page.inc',
+    'type' => MENU_CALLBACK
+  );
   $items['asset/view/%/%'] = array(
     'page callback' => 'mee_asset_preview',
     'page arguments' => array(2,3),
@@ -103,8 +113,13 @@ function mee_asset_menu(){
  */
 function mee_asset_inline_entity_form_reference_form_alter(&$reference_form, &$form_state){
   $type = $form_state['build_info']['args'][0]->type;
+  $ief_id = $reference_form['#ief_id'];
+  $settings = $form_state['inline_entity_form'][$ief_id];
+  $bundle = $settings['form settings']['bundle'];
   module_load_include('inc','mee_asset','mee_asset.page');
-  $reference_form['browser'] = mee_asset_browser('image');
+  $reference_form['browser'] = mee_asset_browser($bundle);
+  $reference_form['browser']['#prefix'] = '<div class="mee-wrapper"><div class="asset-browser-inner"><div id="asset-browser">';
+  $reference_form['browser']['#suffix'] = '</div></div></div>';
   $reference_form['#attached']['js'][] = drupal_get_path('module', 'mee_asset') . '/js/mee_asset.inline_entity_form.js';
   $reference_form['#attached']['css'][] = drupal_get_path('module', 'mee') . '/css/application.css';
   $reference_form['#attached']['css'][] = drupal_get_path('module', 'mee_asset') . '/css/mee_asset.inline_entity_form.css';

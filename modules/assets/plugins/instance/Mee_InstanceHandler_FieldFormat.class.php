@@ -9,7 +9,7 @@ class Mee_InstanceHandler_FieldFormat extends Mee_InstanceHandler_Abstract {
     $info = field_info_instances($entity_type, $bundle);
     if(!empty($info)){
       foreach($info as $field){
-
+        if(empty($field['field_name'])) continue;
         $formatted_field = field_read_field($field['field_name']);
         // Field instance to be formatted.
         $formatted_instance = field_read_instance($entity_type, $field['field_name'], $bundle);
@@ -17,8 +17,6 @@ class Mee_InstanceHandler_FieldFormat extends Mee_InstanceHandler_Abstract {
         // Fetch formatter options, excluding the "from_field" formatter.
         module_load_include('inc', 'field_ui', 'field_ui.admin');
         $formatter_options = field_ui_formatter_options($formatted_field['type']);
-        if(empty($formatter_options)) return;
-
         unset($formatter_options['from_field']);
         $form['field_formats'] = array('#tree' => TRUE, '#prefix' => '<strong>Selectable formats for File</strong><hr style="margin:5px 0" />');
         foreach($formatter_options as $option => $label){
@@ -49,6 +47,7 @@ class Mee_InstanceHandler_FieldFormat extends Mee_InstanceHandler_Abstract {
   }
 
   public function instance_form(&$form, &$form_state, $settings) {
+    //dsm($settings);
     $entity_type = 'mee_asset';
     $bundle = $form_state['mee_asset']->type;
     $form['field_formats'] = array('#tree' => TRUE);
@@ -146,8 +145,7 @@ class Mee_InstanceHandler_FieldFormat extends Mee_InstanceHandler_Abstract {
         if(!empty($element['asset'][$field_name])){
           $field = field_info_instance($entity_type, $field_name, $bundle);
           $display = $data + $field['display']['default'];
-          $details = $settings['instance']['field_formats'][$field_name][$data['type']];
-          if(!empty($element['#preview']) && !empty($details['preview'])){
+          if(!empty($element['#preview']) && !empty($data['preview'])){
             $type = mee_asset_type_load($bundle);
             $element['asset'][$field_name] = array(
               '#markup' => '<div class="mee-preview-temp"><i class="icon-'.$type->data['icon'].'"></i><span>'.$type->label.'</span></div>',
