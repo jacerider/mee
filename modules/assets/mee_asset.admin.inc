@@ -228,7 +228,7 @@ function mee_asset_edit_form($form, &$form_state, $mee_asset, $js) {
       'effect' => 'fade',
     );
     $form['actions']['cancel'] = array(
-      '#markup' => l('Cancel', 'asset/browser/'.$mee_asset->type.'/nojs', array('attributes'=>array('class'=>array('use-ajax', 'btn', 'btn-link')))),
+      '#markup' => l('Cancel', 'asset/browser/'.$mee_asset->type.'/all/nojs', array('attributes'=>array('class'=>array('use-ajax', 'btn', 'btn-link')))),
     );
   }
 
@@ -251,7 +251,7 @@ function mee_asset_edit_form($form, &$form_state, $mee_asset, $js) {
 function mee_asset_edit_form_submit_ajax($form, $form_state) {
   if(!form_get_errors()){
     module_load_include('inc','mee_asset','mee_asset.page');
-    $commands = mee_asset_browser( $form_state['mee_asset']->type, TRUE, TRUE );
+    $commands = mee_asset_browser( $form_state['mee_asset']->type, NULL, TRUE, TRUE );
     // Flush js cache so new element is updated
     if(!empty($form_state['mee_asset']->id)){
       $commands[] = mee_asset_ajax_command_asset_clear_cache($form_state['mee_asset']->id);

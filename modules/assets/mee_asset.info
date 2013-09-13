@@ -6,6 +6,7 @@ core        = 7.x
 
 dependencies[] = entity
 dependencies[] = mee
+dependencies[] = taxonomy
 
 files[] = mee_asset.admin.inc
 files[] = mee_asset_type.admin.inc

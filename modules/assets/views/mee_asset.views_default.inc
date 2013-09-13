@@ -110,6 +110,14 @@ function mee_asset_views_default_views_browser( $bundle ){
   $handler->display->display_options['sorts']['created']['table'] = 'mee_asset';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
+  /* Contextual filter: Asset: Category (field_asset_category) */
+  $handler->display->display_options['arguments']['field_asset_category_tid']['id'] = 'field_asset_category_tid';
+  $handler->display->display_options['arguments']['field_asset_category_tid']['table'] = 'field_data_field_asset_category';
+  $handler->display->display_options['arguments']['field_asset_category_tid']['field'] = 'field_asset_category_tid';
+  $handler->display->display_options['arguments']['field_asset_category_tid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['field_asset_category_tid']['summary']['number_of_records'] = '0';
+  $handler->display->display_options['arguments']['field_asset_category_tid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['field_asset_category_tid']['summary_options']['items_per_page'] = '25';
   /* Filter criterion: Asset: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'mee_asset';

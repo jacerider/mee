@@ -8,8 +8,24 @@ Drupal.behaviors.mee_asset = {
 
   attach: function (context, settings) {
     var self = this;
-    $('.mee-wrapper .asset-select').once(function(){
+    var $wrapper = $('.mee-widget');
+    $('.asset-select', $wrapper).once(function(){
       $(this).click( self.assetSelect ).closest('td').wrapInner('<div class="asset" />');
+    });
+    var $wrapper = $('.mee-wrapper');
+    $('.asset-category-change', $wrapper).once(function(){
+      $(this).click(function( e ){
+        $('.asset-category-list', $wrapper).addClass('asset-category-list-show');
+        e.preventDefault();
+      });
+    });
+
+    // When uploading a new image, make the filename the asset name if none exists.
+    $('#asset-create-form .field-name-field-asset-image .image-widget-data .file a').once(function(){
+      var value = $(this).text().replace(/\.[^/.]+$/, "").replace(/_|-/g,' ').replace( /(^|\s)([a-z])/g , function(m,p1,p2){ return p1+p2.toUpperCase(); } );
+      $('#asset-create-form .form-item-name input').each(function(){
+        if(!$(this).val()) $(this).val(value);
+      });
     });
 
   },
@@ -21,9 +37,6 @@ Drupal.behaviors.mee_asset = {
     var id = $this.attr('data-id');
     var instance = $this.attr('data-instance');
     if( instance == 1 ){
-
-      //var placeholder = $('<div id="asset-instance"><div class="mee-loader"><div><i class="icon-mee-spinner animate-spin"></i> Loading asset options...</div></div></div>');
-      //$('#asset-browser').html( placeholder );
 
       // Setup AJAX request
       var element_settings = {
@@ -66,7 +79,7 @@ Drupal.behaviors.mee_asset = {
 $.fn.meeCommands.asset = function () {
 
   var mee = $.fn.meeActive;
-  var placeholder = $('<div id="asset-browser"><div class="mee-loader"><div><i class="icon-mee-spinner animate-spin"></i> Loading ' + mee.meeButtonSettings.data.label.toLowerCase() + ' browser...</div></div></div>');
+  var placeholder = $('<div id="asset-browser"><div class="mee-loader"><div><i class="icon-spinner icon-spin"></i> Loading ' + mee.meeButtonSettings.data.label.toLowerCase() + ' browser...</div></div></div>');
 
   mee.meeWidget = new $.fn.meeWidget()
     .setTitle( mee.meeButtonSettings.label + ' ' )
@@ -92,7 +105,7 @@ $.fn.meeCommands.asset = function () {
 
   // Setup AJAX request
   var element_settings = {
-      url           : '/asset/browser/' + mee.meeButtonSettings.data.type + '/ajax'
+      url           : '/asset/browser/' + mee.meeButtonSettings.data.type + '/all/ajax'
     , event       : 'onload'
     , keypress    : false
     , prevent     : false
@@ -118,7 +131,7 @@ $.fn.meeReplace.after.asset = function ( text ) {
     var id = parts[1];
     var instance = parts[2] ? parts[2] : 0;
     var base = id + '-' + instance;
-    return text.replace(regex, '<div class="asset-loader asset-' + base + '" ' + (!instance ? '' : 'data-instance="' + instance + '"')  + ' data-id="' + id + '"><div class="asset-loading"><div><i class="icon-mee-spinner animate-spin"></i> This will be replace by asset with id ' + id + '</div></div></div>');
+    return text.replace(regex, '<div class="asset-loader asset-' + base + '" ' + (!instance ? '' : 'data-instance="' + instance + '"')  + ' data-id="' + id + '"><div class="asset-loading"><div><i class="icon-spinner icon-spin"></i> This will be replace by asset with id ' + id + '</div></div></div>');
   });
   return text;
 }

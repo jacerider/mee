@@ -15,6 +15,23 @@ function mee_asset_install() {
 
   // Create image style
   mee_asset_install_image_style();
+
+  return array();
+}
+
+
+/**
+ * Create an asset category taxonomy and taxonomy reference field.
+ */
+function mee_asset_update_7001() {
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'Asset Category',
+    'machine_name' => 'asset_category',
+  ));
+
+  mee_asset_install_bundle_category_fields();
+
+  return array();
 }
 
 
@@ -416,6 +433,139 @@ function mee_asset_install_bundle_image_fields(){
     'id' => '57',
     'field_id' => '28',
     'field_name' => 'field_asset_image',
+    'entity_type' => 'mee_asset',
+    'bundle' => 'image',
+    'deleted' => '0',
+  );
+  field_create_instance($instance);
+}
+
+
+
+function mee_asset_install_bundle_category_fields(){
+  $field = array(
+    'translatable' => '0',
+    'entity_types' => array(
+    ),
+    'settings' => array(
+      'allowed_values' => array(
+        0 => array(
+          'vocabulary' => 'asset_category',
+          'parent' => '0',
+        ),
+      ),
+    ),
+    'storage' => array(
+      'type' => 'field_sql_storage',
+      'settings' => array(
+      ),
+      'module' => 'field_sql_storage',
+      'active' => '1',
+      'details' => array(
+        'sql' => array(
+          'FIELD_LOAD_CURRENT' => array(
+            'field_data_field_asset_category' => array(
+              'tid' => 'field_asset_category_tid',
+            ),
+          ),
+          'FIELD_LOAD_REVISION' => array(
+            'field_revision_field_asset_category' => array(
+              'tid' => 'field_asset_category_tid',
+            ),
+          ),
+        ),
+      ),
+    ),
+    'foreign keys' => array(
+      'tid' => array(
+        'table' => 'taxonomy_term_data',
+        'columns' => array(
+          'tid' => 'tid',
+        ),
+      ),
+    ),
+    'indexes' => array(
+      'tid' => array(
+        0 => 'tid',
+      ),
+    ),
+    'id' => '27',
+    'field_permissions' => array(
+      'type' => '0',
+    ),
+    'field_name' => 'field_asset_category',
+    'type' => 'taxonomy_term_reference',
+    'module' => 'taxonomy',
+    'active' => '1',
+    'locked' => '0',
+    'cardinality' => '1',
+    'deleted' => '0',
+    'columns' => array(
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => true,
+        'not null' => false,
+      ),
+    ),
+    'bundles' => array(
+      'mee_asset' => array(
+        0 => 'image',
+      ),
+    ),
+  );
+  field_create_field($field);
+
+  $instance = array(
+    'label' => 'Category',
+    'widget' => array(
+      'weight' => '2',
+      'type' => 'options_select',
+      'module' => 'options',
+      'active' => 1,
+      'settings' => array(
+        'maxlength_js_label' => 'Content limited to @limit characters, remaining: @remaining',
+      ),
+    ),
+    'settings' => array(
+      'user_register_form' => false,
+    ),
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'type' => 'taxonomy_term_reference_link',
+        'settings' => array(
+        ),
+        'module' => 'taxonomy',
+        'weight' => 1,
+      ),
+      'teaser' => array(
+        'type' => 'hidden',
+        'label' => 'above',
+        'settings' => array(
+        ),
+        'weight' => 0,
+      ),
+      'tab' => array(
+        'type' => 'hidden',
+        'label' => 'above',
+        'settings' => array(
+        ),
+        'weight' => 0,
+      ),
+      'callout' => array(
+        'type' => 'hidden',
+        'label' => 'above',
+        'settings' => array(
+        ),
+        'weight' => 0,
+      ),
+    ),
+    'required' => 0,
+    'description' => '',
+    'default_value' => NULL,
+    'id' => '45',
+    'field_id' => '27',
+    'field_name' => 'field_asset_category',
     'entity_type' => 'mee_asset',
     'bundle' => 'image',
     'deleted' => '0',

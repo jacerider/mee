@@ -8,13 +8,19 @@
  * @param  $type
  *   The bundled asset to load a browser for.
  */
-function mee_asset_browser( $type, $js = FALSE, $return_commands = FALSE ) {
+function mee_asset_browser( $type, $category_tid = NULL, $js = FALSE, $return_commands = FALSE ) {
 
   $output = array();
   $output['#prefix'] = '<div class="asset-browser-inner clearfix">';
   $output['#suffix'] = '</div>';
 
+  $output['taxonomy'] = array(
+    '#markup' => mee_asset_categories($type),
+    '#weight' => -5,
+  );
+
   $view = views_get_view('mee_assets_browser_' . $type);
+  if(!empty($category_tid)) $view->set_arguments(array($category_tid));
   $output['view']['#markup'] = $view->preview('default');
   $view->destroy();
 
@@ -36,6 +42,27 @@ function mee_asset_browser( $type, $js = FALSE, $return_commands = FALSE ) {
   $page = array('#type' => 'ajax', '#commands' => $commands);
   ajax_deliver($page);
   exit;
+}
+
+function mee_asset_categories($type){
+  $output = '';
+
+  $taxonomy = taxonomy_vocabulary_machine_name_load('asset_category');
+  $terms = taxonomy_get_tree($taxonomy->vid);
+
+  $options = array();
+  foreach($terms as $term){
+    $count = db_query("SELECT COUNT(entity_id) FROM {field_data_field_asset_category} WHERE field_asset_category_tid = :tid AND bundle = :bundle", array(':tid' => $term->tid, ':bundle' => $type) )->fetchField();
+    if(!empty($count)){
+      $options[$term->tid] = l($term->name,'asset/browser/image/' . $term->tid . '/nojs', array('attributes'=>array('class'=>array('btn', 'btn-mini', 'use-ajax'))));
+    }
+  }
+  if(!empty($options)){
+    array_unshift($options, array(l('- All -','asset/browser/image/all/nojs', array('attributes'=>array('class'=>array('btn', 'btn-mini', 'use-ajax'))))));
+    $output .= theme('item_list', array('items'=>$options));
+  }
+
+  return $output;
 }
 
 /**
@@ -136,7 +163,7 @@ function mee_asset_instance_form($form, &$form_state, $asset){
     'effect' => 'fade',
   );
   $form['actions']['cancel'] = array(
-    '#markup' => l('Cancel', 'asset/browser/'.$asset->type.'/nojs', array('attributes'=>array('class'=>array('use-ajax', 'btn', 'btn-link')))),
+    '#markup' => l('Cancel', 'asset/browser/'.$asset->type.'/all/nojs', array('attributes'=>array('class'=>array('use-ajax', 'btn', 'btn-link')))),
   );
 
   return $form;
@@ -246,7 +273,7 @@ function mee_asset_remove_form($form, &$form_state, $asset){
     'effect' => 'fade',
   );
   $form['actions']['cancel'] = array(
-    '#markup' => l('Cancel', 'asset/browser/'.$asset->type.'/nojs', array('attributes'=>array('class'=>array('use-ajax', 'btn', 'btn-link')))),
+    '#markup' => l('Cancel', 'asset/browser/'.$asset->type.'/all/nojs', array('attributes'=>array('class'=>array('use-ajax', 'btn', 'btn-link')))),
   );
 
   return $form;
@@ -255,5 +282,5 @@ function mee_asset_remove_form($form, &$form_state, $asset){
 function mee_asset_remove_form_submit_ajax($form, &$form_state){
   $asset = $form_state['mee_asset'];
   mee_asset_delete( $asset );
-  return mee_asset_browser( $asset->type, TRUE );
+  return mee_asset_browser( $asset->type, NULL, TRUE );
 }
