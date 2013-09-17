@@ -9,7 +9,7 @@ Drupal.behaviors.mee_link = {
       $(this).focus();
       var mee = $.fn.meeActive;
       var ss = mee.meeSelection;
-      $('#mee-link-title').val(ss.content);
+      $('#mee-link-title').val(ss.text);
     });
 
   }
