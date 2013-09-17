@@ -8,7 +8,6 @@ Drupal.behaviors.mee_link = {
     $('#mee-web').once(function(){
       $(this).focus();
       var mee = $.fn.meeActive;
-      console.log(ss);
       var ss = mee.meeSelection;
       $('#mee-link-title').val(ss.content);
     });

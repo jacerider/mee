@@ -62,6 +62,12 @@ function mee_field_widget_form_alter(&$element, &$form_state, $context){
   $field = $context['field'];
   if(in_array($field['type'], mee_allowed_field_types())){
 
+    $element['mee_enabled'] = array(
+      '#type' => 'hidden',
+      '#value' => TRUE,
+      '#tree' => FALSE,
+    );
+
   }
 }
 
@@ -185,8 +191,6 @@ function mee_process_widget(&$element) {
   $element['#id'] = $id;
   $element['#attributes']['class'][] = 'mee-textarea';
   $element['#field_prefix'] = '<div id="wmd-button-bar"></div>';
-  //$element[$key]['#value'] = "This is a **test** of *awesomness*\n\n - List item\n\n[enter link description here][1]\n\nThis is just a long bit of text so I can run tests\n\n##A really cool test\n\n###this is sooo stinking cool!\n\n [1]: http://www.google.com";
-  //$element['#value'] = "[Google][1]\n\n[1]: http://google.com";
 
   drupal_alter('mee_editor_element', $element);
 

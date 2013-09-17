@@ -82,6 +82,14 @@ function mee_asset_type_form($form, &$form_state, $mee_asset_type, $op = 'edit')
     '#description' => t('The keyboard shortcut that can be used to access this button. Example: ctrl+b.'),
     '#default_value' => empty($mee_asset_type->data['shortcut']) ? '' : $mee_asset_type->data['shortcut'],
   );
+
+  $form['data']['placeholder'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use placeholder'),
+    '#description' => t('When in preview mode, a placeholder will be used instead of a full render of this content.'),
+    '#default_value' => empty($mee_asset_type->data['placeholder']) ? '' : $mee_asset_type->data['placeholder'],
+  );
+
   $instances = mee_get_plugin('instance');
   usort($instances, 'drupal_sort_weight');
   if(!empty($instances)){

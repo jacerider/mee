@@ -34,6 +34,7 @@ function mee_asset_init(){
   //$output = mee_asset_view(2,1);
   //dsm($output);
   //mee_asset_instance_clean();
+  //db_query("UPDATE {system} SET weight = 10 WHERE name = 'mee_asset'");
 }
 
 /**
@@ -135,11 +136,15 @@ function mee_asset_inline_entity_form_reference_form_alter(&$reference_form, &$f
  * Implements hook_custom_theme.
  */
 function mee_asset_custom_theme() {
+
+  if(!empty($_POST) && !empty($_POST['mee_enabled'])){
+    return variable_get('theme_default');
+  }
   if (arg(0) == 'asset' && arg(1) == 'browser' && !empty($_POST['ajax_page_state']['theme'])) {
     $themes = list_themes();
     if(!empty($themes[$_POST['ajax_page_state']['theme']])) return $_POST['ajax_page_state']['theme'];
   }
-  if (arg(0) == 'asset' && in_array(arg(1), array('view','delete','edit','instance')) && !empty($_POST['ajax_page_state']['theme'])) {
+  if (arg(0) == 'asset' && in_array(arg(1), array('delete','edit','instance')) && !empty($_POST['ajax_page_state']['theme'])) {
     $themes = list_themes();
     if(!empty($themes[$_POST['ajax_page_state']['theme']])) return $_POST['ajax_page_state']['theme'];
   }
@@ -168,6 +173,7 @@ function mee_asset_filter_info() {
  */
 function mee_asset_filter_process($text, $format) {
   $assets = mee_asset_matches($text);
+
   foreach($assets as $asset_id => $asset){
     if(empty($asset)){
       $key = 'asset-'.$asset_id;
@@ -234,6 +240,7 @@ function mee_asset_view($asset_id, $instance_id, $preview = FALSE){
     $display = $controller->view(array($asset->id => $asset));
     $render['asset'] = $display['mee_asset'][key($display['mee_asset'])];
     $render['#preview'] = $preview;
+    $render['#asset_type'] = mee_asset_type_load($asset->type);
     unset($controller,$display);
     $output['view'] = theme('mee_asset_instance', $render);
   }
